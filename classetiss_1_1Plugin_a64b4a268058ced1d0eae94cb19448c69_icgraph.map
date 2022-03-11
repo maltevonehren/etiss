@@ -1,0 +1,9 @@
+<map id="etiss::Plugin::getLastAssignedCoreName" name="etiss::Plugin::getLastAssignedCoreName">
+<area shape="rect" id="node1" title=" " alt="" coords="444,49,660,90"/>
+<area shape="rect" id="node2" href="$classRISCVArch.html#a39f9bbceb62307c077347a015742fc14" title="reset cpu (structure)" alt="" coords="230,5,387,32"/>
+<area shape="rect" id="node4" href="$classRISCV64Arch.html#a890ea98c585b3ed1241751e750e3c36a" title="reset cpu (structure)" alt="" coords="221,56,396,83"/>
+<area shape="rect" id="node6" href="$classOR1KArch.html#a16a93f236f127e4b7b9ad0cb3325c09e" title="reset cpu (structure)" alt="" coords="231,107,386,133"/>
+<area shape="rect" id="node3" href="$classRISCVArch.html#a1646f763d086af4e999295e5c5552584" title="allocate new cpu structure" alt="" coords="14,5,165,32"/>
+<area shape="rect" id="node5" href="$classRISCV64Arch.html#a235a9817d56b05ee2dfd36b45ba0e19a" title="allocate new cpu structure" alt="" coords="5,56,173,83"/>
+<area shape="rect" id="node7" href="$classOR1KArch.html#a92748b5a6b09a99a0f317ae85ceaa76a" title="allocate new cpu structure" alt="" coords="15,107,164,133"/>
+</map>

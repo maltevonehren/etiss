@@ -1,0 +1,6 @@
+<map id="etiss::instr::InstructionSet::foreach" name="etiss::instr::InstructionSet::foreach">
+<area shape="rect" id="node1" title=" " alt="" coords="293,71,460,112"/>
+<area shape="rect" id="node2" href="$classetiss_1_1plugin_1_1InstructionAccurateCallback.html#a8e2f99eab05454fe3f848b8a2449338c" title="called after all instructions have been added to allow last changes" alt="" coords="5,5,245,47"/>
+<area shape="rect" id="node3" href="$classetiss_1_1plugin_1_1VariableValueLogger.html#ae78ddff9a4e6c535823404e79accdeb6" title="called after all instructions have been added to allow last changes" alt="" coords="26,71,225,112"/>
+<area shape="rect" id="node4" href="$classetiss_1_1DataSheetAccurateTiming.html#a380719b9dd4b78acd21197f80592d6fe" title="performs lookups for instructions that are in the modded instruction set to add timing code (e...." alt="" coords="32,136,219,177"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="OR1K_internal" name="OR1K_internal">
+<area shape="rect" id="node1" title=" " alt="" coords="391,467,505,493"/>
+<area shape="rect" id="node2" title=" " alt="" coords="347,377,415,404"/>
+<area shape="rect" id="node3" href="$structOR1K.html" title=" " alt="" coords="485,377,544,404"/>
+<area shape="rect" id="node4" title=" " alt="" coords="5,5,80,32"/>
+<area shape="rect" id="node5" href="$structETISS__CPU.html" title="basic cpu state structure needed for execution of any cpu architecture." alt="" coords="349,221,441,247"/>
+<area shape="rect" id="node6" title=" " alt="" coords="185,5,236,32"/>
+<area shape="rect" id="node7" title=" " alt="" coords="369,5,420,32"/>
+<area shape="rect" id="node8" title=" " alt="" coords="474,5,577,32"/>
+<area shape="rect" id="node9" title=" " alt="" coords="683,221,795,247"/>
+</map>

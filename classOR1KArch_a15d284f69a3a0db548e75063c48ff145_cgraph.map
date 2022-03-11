@@ -1,0 +1,9 @@
+<map id="OR1KArch::initInstrSet" name="OR1KArch::initInstrSet">
+<area shape="rect" id="node1" title="called to add instructions to the instruction set" alt="" coords="5,93,172,119"/>
+<area shape="rect" id="node2" href="$classetiss_1_1instr_1_1InstructionCollection.html#a9540933b96f577488e0a15ce43ebc09e" title=" " alt="" coords="220,85,387,127"/>
+<area shape="rect" id="node3" href="$classetiss_1_1instr_1_1InstructionClass.html#a3d4c825b320dead140adb63e7099914d" title=" " alt="" coords="435,56,601,97"/>
+<area shape="rect" id="node7" href="$JITImpl_2TCC_2CMakeLists_8txt.html#afec2f53c8d2d6bfd3d0c2a7fefc6bd06" title=" " alt="" coords="883,71,926,98"/>
+<area shape="rect" id="node4" href="$classetiss_1_1instr_1_1InstructionGroup.html#a49454a183fab081c558c8de41ec1ed83" title=" " alt="" coords="649,5,816,47"/>
+<area shape="rect" id="node5" href="$namespaceetiss.html#afd320e98bf6a5e2c0d8ffde5dd28dd35" title="write log message at the given level." alt="" coords="864,13,945,39"/>
+<area shape="rect" id="node6" href="$namespaceetiss.html#a5d23a51a17c09f1b863c601d4454f99b" title="conversion of type T to std::string." alt="" coords="993,13,1105,39"/>
+</map>

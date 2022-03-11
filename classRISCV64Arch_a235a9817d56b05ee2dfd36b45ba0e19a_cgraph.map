@@ -1,0 +1,10 @@
+<map id="RISCV64Arch::newCPU" name="RISCV64Arch::newCPU">
+<area shape="rect" id="node1" title="allocate new cpu structure" alt="" coords="5,85,173,112"/>
+<area shape="rect" id="node2" href="$classRISCV64Arch.html#a890ea98c585b3ed1241751e750e3c36a" title="reset cpu (structure)" alt="" coords="221,85,396,112"/>
+<area shape="rect" id="node3" href="$namespaceetiss.html#abea8444fc010e2490f2486e2ededde88" title="Get reference of the global ETISS configuration object." alt="" coords="511,5,593,32"/>
+<area shape="rect" id="node6" href="$classetiss_1_1Configuration.html#ad8c43846d16752474dfab08a50e135ad" title="template function to read the value of a configuration key." alt="" coords="463,56,641,83"/>
+<area shape="rect" id="node7" href="$classetiss_1_1Plugin.html#a64b4a268058ced1d0eae94cb19448c69" title=" " alt="" coords="444,107,660,149"/>
+<area shape="rect" id="node8" href="$____clang__cuda__device__functions_8h.html#a49709260eb058623bbc31b82aa8d6ed7" title=" " alt="" coords="514,173,590,200"/>
+<area shape="rect" id="node4" href="$namespaceetiss.html#afd320e98bf6a5e2c0d8ffde5dd28dd35" title="write log message at the given level." alt="" coords="708,31,789,57"/>
+<area shape="rect" id="node5" href="$namespaceetiss.html#a5d23a51a17c09f1b863c601d4454f99b" title="conversion of type T to std::string." alt="" coords="837,31,949,57"/>
+</map>

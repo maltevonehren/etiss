@@ -1,0 +1,4 @@
+<map id="etiss::getDefaultJIT" name="etiss::getDefaultJIT">
+<area shape="rect" id="node1" title="Get the default JIT implementation." alt="" coords="176,13,323,39"/>
+<area shape="rect" id="node2" href="$classetiss_1_1Initializer.html#acdf27d4056057a91dccd86abfa43a8b1" title="sets the JIT given with the previous loaded .ini files" alt="" coords="5,5,128,47"/>
+</map>

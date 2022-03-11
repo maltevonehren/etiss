@@ -1,0 +1,8 @@
+<map id="RISCV" name="RISCV">
+<area shape="rect" id="node1" title=" " alt="" coords="272,377,333,404"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,80,32"/>
+<area shape="rect" id="node3" href="$structETISS__CPU.html" title="basic cpu state structure needed for execution of any cpu architecture." alt="" coords="257,221,349,247"/>
+<area shape="rect" id="node4" title=" " alt="" coords="185,5,236,32"/>
+<area shape="rect" id="node5" title=" " alt="" coords="369,5,420,32"/>
+<area shape="rect" id="node6" title=" " alt="" coords="474,5,577,32"/>
+</map>

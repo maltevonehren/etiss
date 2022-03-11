@@ -1,0 +1,11 @@
+<map id="etiss::LibraryInterface::countPlugins" name="etiss::LibraryInterface::countPlugins">
+<area shape="rect" id="node1" title=" " alt="" coords="789,35,953,76"/>
+<area shape="rect" id="node2" href="$group__ETISS__Frontend.html#ga4f8d7c30115cfe2422f628a812d3b0b8" title="Get a present Plugin plug&#45;in by name." alt="" coords="399,13,521,39"/>
+<area shape="rect" id="node4" href="$classetiss_1_1LibraryInterface.html#a08e5c418f0348e81ab5f20c5ba5f88df" title="returns true if this library provides nothing" alt="" coords="577,64,741,105"/>
+<area shape="rect" id="node3" href="$classetiss_1_1Initializer.html#a680f42f4c7effbc0b4b5bc2b4eaae21f" title="loads the plugins given with the previous loaded .ini files" alt="" coords="198,5,321,47"/>
+<area shape="rect" id="node5" href="$group__ETISS__Frontend.html#gaaf6f48444721c0a133cdfbe5a26f11a3" title="Get a present CPUArch plug&#45;in by name." alt="" coords="391,71,529,98"/>
+<area shape="rect" id="node7" href="$group__ETISS__Frontend.html#gaa5e8c6d44d5e6b27cb4384e60c557283" title="Get a present JIT plug&#45;in by name." alt="" coords="411,122,509,149"/>
+<area shape="rect" id="node6" href="$classetiss_1_1CPUCore.html#a804f3252302d7ae49f7918da2871f6ba" title="Create a CPUCore instance." alt="" coords="176,71,343,98"/>
+<area shape="rect" id="node8" href="$group__ETISS__Frontend.html#ga03edc9a6d65e4853824c46ba162e9f4c" title="Get the default JIT implementation." alt="" coords="186,122,333,149"/>
+<area shape="rect" id="node9" href="$classetiss_1_1Initializer.html#acdf27d4056057a91dccd86abfa43a8b1" title="sets the JIT given with the previous loaded .ini files" alt="" coords="5,140,128,181"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="etiss::fault::Trigger::resolveTime" name="etiss::fault::Trigger::resolveTime">
+<area shape="rect" id="node1" title="this function calculates in case of a TIMERELATIVE Trigger a constant TIME trigger" alt="" coords="196,29,339,71"/>
+<area shape="rect" id="node2" href="$classetiss_1_1fault_1_1Trigger.html#a5740978553bccd11f09253c562e16921" title="this function checks if the Trigger has just fired." alt="" coords="5,29,148,71"/>
+</map>
