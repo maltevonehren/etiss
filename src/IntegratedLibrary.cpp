@@ -63,6 +63,7 @@
 #include "etiss/IntegratedLibrary/PrintInstruction.h"
 #include "etiss/IntegratedLibrary/errorInjection/Plugin.h"
 #include "etiss/IntegratedLibrary/gdb/GDBServer.h"
+#include "etiss/IntegratedLibrary/Semihosting.h"
 
 extern "C"
 {
@@ -74,7 +75,7 @@ extern "C"
 
     unsigned ETISSINCLUDED_countCPUArch() { return 0; }
 
-    unsigned ETISSINCLUDED_countPlugin() { return 4; }
+    unsigned ETISSINCLUDED_countPlugin() { return 5; }
 
     const char *ETISSINCLUDED_nameJIT(unsigned index) { return 0; }
 
@@ -92,6 +93,8 @@ extern "C"
             return "PrintInstruction";
         case 3:
             return "Logger";
+        case 4:
+            return "Semihosting";
         }
         return 0;
     }
@@ -132,6 +135,8 @@ extern "C"
             return etiss::plugin::gdb::Server::createTCPServer(options);
         case 2:
             return new etiss::plugin::PrintInstruction();
+        case 4:
+            return new etiss::plugin::Semihosting();
         case 3:
             etiss::Configuration cfg;
             cfg.config() = options;
