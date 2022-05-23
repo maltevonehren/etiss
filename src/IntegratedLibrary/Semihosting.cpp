@@ -41,7 +41,11 @@ void Semihosting::finalizeInstr(etiss::instr::Instruction &instr) const
             {
                 std::stringstream ss;
 
-                ss << "if (semihosting_maybe_execute(" << pcode << ")) {\n";
+                ss << "int semihosting_result = semihosting_maybe_execute(" << pcode << ");\n";
+                ss << "if (semihosting_result == -1) {\n";
+                ss << "    return ETISS_RETURNCODE_CPUFINISHED;\n";
+                ss << "}\n";
+                ss << "if (semihosting_result > 0) {\n";
                 ss << "    cpu->instructionPointer += 4ULL;\n";
                 ss << "    break;\n";
                 ss << "}\n";
@@ -299,9 +303,8 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     }
     case 0x18: // SYS_EXIT
     {
-        etiss::log(etiss::WARNING, "Semihosting: SYS_EXIT -> exit simulator");
-        etiss::shutdown();
-        exit(0);
+        etiss::log(etiss::INFO, "Semihosting: SYS_EXIT -> exit simulator");
+        // exiting handled in maybeSemihostingCall
         return 0;
     }
     default:
@@ -326,10 +329,16 @@ int Semihosting::maybeSemihostingCall()
 
         if (operationNumberRegister && parameterRegister)
         {
-            etiss_int64 retval =
-                semihostingCall(operationNumberRegister.get()->read(), parameterRegister.get()->read());
+            etiss_uint64 operationNumber = operationNumberRegister.get()->read();
+            etiss_uint64 parameter = parameterRegister.get()->read();
+            etiss_int64 retval = semihostingCall(operationNumber, parameter);
 
             operationNumberRegister.get()->write(retval);
+
+            if (operationNumber == 0x18)
+            {
+                return -1;
+            }
         }
         else
         {
