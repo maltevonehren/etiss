@@ -65,7 +65,7 @@ void Semihosting::finalizeInstrSet(etiss::instr::ModedInstructionSet &mis) const
 
 void Semihosting::finalizeCodeBlock(etiss::CodeBlock &block) const
 {
-    block.fileglobalCode().insert("extern void semihosting_maybe_execute(void *);\n\n");
+    block.fileglobalCode().insert("extern int semihosting_maybe_execute(void *);\n\n");
 }
 
 void *Semihosting::getPluginHandle()
@@ -105,6 +105,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     case 0x05: // SYS_WRITE
     case 0x06: // SYS_READ
     case 0x09: // SYS_ISTTY
+    case 0x0a: // SYS_SEEK
     case 0x0c: // SYS_FLEN
     {
         etiss_uint64 fd = readFromStructUInt(parameter, 0);
@@ -129,8 +130,14 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
             openFiles.erase(fd);
             if (fd > 2)
+            {
                 // do not close stdin, stdout, stderr of host process
-                fclose(file);
+                if (fclose(file) < 0)
+                {
+                    semihosting_errno = errno;
+                    return -1;
+                }
+            }
             return 0;
         }
         case 0x05: // SYS_WRITE
@@ -167,21 +174,41 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         case 0x09: // SYS_ISTTY
         {
             std::stringstream ss;
-            ss << "Semihosting: SYS_ISTTY fd " << fd << " isntr " << cpu_->instructionPointer;
+            ss << "Semihosting: SYS_ISTTY fd " << fd;
             etiss::log(etiss::INFO, ss.str());
 
             return isatty(fileno(file));
         }
+        case 0x0a: // SYS_SEEK
+        {
+            etiss_uint64 position = readFromStructUInt(parameter, 1);
+
+            std::stringstream ss;
+            ss << "Semihosting: SYS_SEEK fd " << fd << ": " << position;
+            etiss::log(etiss::INFO, ss.str());
+
+            int retval = fseek(file, position, SEEK_SET);
+            if (retval < 0)
+            {
+                semihosting_errno = errno;
+                return -1;
+            }
+            return 0;
+        }
         case 0x0c: // SYS_FLEN
         {
             std::stringstream ss;
-            ss << "Semihosting: SYS_FLEN fd " << fd << " isntr " << cpu_->instructionPointer;
+            ss << "Semihosting: SYS_FLEN fd " << fd;
             etiss::log(etiss::INFO, ss.str());
 
             int currentPos = ftell(file);
-            fseek(file, 0, SEEK_END);
+            if (fseek(file, 0, SEEK_END) < 0)
+            {
+                semihosting_errno = ESPIPE;
+                return -1;
+            }
             int length = ftell(file);
-            fseek(file, 0, currentPos);
+            fseek(file, currentPos, SEEK_SET);
             return length;
         }
         }
@@ -192,8 +219,11 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         etiss_uint64 mode = readFromStructUInt(parameter, 1);
         etiss_uint64 path_str_len = readFromStructUInt(parameter, 2);
         if (mode > 11)
+        {
             // invalid mode
+            semihosting_errno = EINVAL;
             return -1;
+        }
 
         std::vector<etiss_uint8> buffer = readSystemMemory(path_str_addr, path_str_len);
         std::string path_str(buffer.begin(), buffer.end());
@@ -235,10 +265,37 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
         return fd;
     }
+    case 0x0e: // SYS_REMOVE
+    {
+        etiss_uint64 path_str_addr = readFromStructUInt(parameter, 0);
+        etiss_uint64 path_str_len = readFromStructUInt(parameter, 1);
+
+        std::vector<etiss_uint8> buffer = readSystemMemory(path_str_addr, path_str_len);
+        std::string path_str(buffer.begin(), buffer.end());
+
+        std::stringstream ss;
+        ss << "Semihosting: SYS_REMOVE \"" << path_str << "\"";
+        etiss::log(etiss::INFO, ss.str());
+
+        if (remove(path_str.c_str()) < 0)
+        {
+            semihosting_errno = errno;
+            return -1;
+        }
+        return 0;
+    }
+    case 0x11: // SYS_TIME
+    {
+        etiss::log(etiss::INFO, "Semihosting: SYS_TIME");
+        etiss_uint64 seconds_since_epoch = (etiss_uint64)std::time(0);
+        return seconds_since_epoch;
+    }
     case 0x13: // SYS_ERRNO
     {
-        etiss::log(etiss::INFO, "Semihosting: SYS_ERRNO");
-        return errno;
+        std::stringstream ss;
+        ss << "Semihosting: SYS_ERRNO (" << semihosting_errno << ")";
+        etiss::log(etiss::INFO, ss.str());
+        return semihosting_errno;
     }
     case 0x18: // SYS_EXIT
     {
