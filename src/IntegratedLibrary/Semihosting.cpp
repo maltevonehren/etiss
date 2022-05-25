@@ -1,6 +1,7 @@
 
 
 #include "etiss/IntegratedLibrary/Semihosting.h"
+#include "etiss/IntegratedLibrary/SemihostingCalls.h"
 #include "etiss/CPUCore.h"
 #include <unistd.h>
 #include <errno.h>
@@ -91,12 +92,12 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     switch (operationNumber)
     {
     // all operations that have the file descriptor as their first argument
-    case 0x02: // SYS_CLOSE
-    case 0x05: // SYS_WRITE
-    case 0x06: // SYS_READ
-    case 0x09: // SYS_ISTTY
-    case 0x0a: // SYS_SEEK
-    case 0x0c: // SYS_FLEN
+    case SYS_CLOSE:
+    case SYS_WRITE:
+    case SYS_READ:
+    case SYS_ISTTY:
+    case SYS_SEEK:
+    case SYS_FLEN:
     {
         etiss_uint64 fd = readFromStructUInt(parameter, 0);
         if (openFiles.count(fd) == 0)
@@ -112,7 +113,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
         switch (operationNumber)
         {
-        case 0x02: // SYS_CLOSE
+        case SYS_CLOSE:
         {
             std::stringstream ss;
             ss << "Semihosting: SYS_CLOSE fd " << fd;
@@ -130,7 +131,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
             }
             return 0;
         }
-        case 0x05: // SYS_WRITE
+        case SYS_WRITE:
         {
             etiss_uint64 address = readFromStructUInt(parameter, 1);
             etiss_uint64 count = readFromStructUInt(parameter, 2);
@@ -144,7 +145,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
             return count - num_written;
         }
-        case 0x06: // SYS_READ
+        case SYS_READ:
         {
             etiss_uint64 address = readFromStructUInt(parameter, 1);
             etiss_uint64 count = readFromStructUInt(parameter, 2);
@@ -161,7 +162,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
             return count - num_read;
         }
-        case 0x09: // SYS_ISTTY
+        case SYS_ISTTY:
         {
             std::stringstream ss;
             ss << "Semihosting: SYS_ISTTY fd " << fd;
@@ -169,7 +170,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
             return isatty(fileno(file));
         }
-        case 0x0a: // SYS_SEEK
+        case SYS_SEEK:
         {
             etiss_uint64 position = readFromStructUInt(parameter, 1);
 
@@ -185,7 +186,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
             }
             return 0;
         }
-        case 0x0c: // SYS_FLEN
+        case SYS_FLEN:
         {
             std::stringstream ss;
             ss << "Semihosting: SYS_FLEN fd " << fd;
@@ -203,7 +204,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         }
         }
     }
-    case 0x01: // SYS_OPEN
+    case SYS_OPEN:
     {
         etiss_uint64 path_str_addr = readFromStructUInt(parameter, 0);
         etiss_uint64 mode = readFromStructUInt(parameter, 1);
@@ -255,7 +256,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
 
         return fd;
     }
-    case 0x0e: // SYS_REMOVE
+    case SYS_REMOVE:
     {
         etiss_uint64 path_str_addr = readFromStructUInt(parameter, 0);
         etiss_uint64 path_str_len = readFromStructUInt(parameter, 1);
@@ -274,20 +275,20 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         }
         return 0;
     }
-    case 0x11: // SYS_TIME
+    case SYS_TIME:
     {
         etiss::log(etiss::INFO, "Semihosting: SYS_TIME");
         etiss_uint64 seconds_since_epoch = (etiss_uint64)std::time(0);
         return seconds_since_epoch;
     }
-    case 0x13: // SYS_ERRNO
+    case SYS_ERRNO:
     {
         std::stringstream ss;
         ss << "Semihosting: SYS_ERRNO (" << semihosting_errno << ")";
         etiss::log(etiss::INFO, ss.str());
         return semihosting_errno;
     }
-    case 0x18: // SYS_EXIT
+    case SYS_EXIT:
     {
         etiss::log(etiss::INFO, "Semihosting: SYS_EXIT -> exit simulator");
         // TODO
