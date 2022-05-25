@@ -22,19 +22,16 @@ class Semihosting : public etiss::TranslationPlugin
     void cleanup() override;
 
     // TranslationPlugin
-    void finalizeInstrSet(etiss::instr::ModedInstructionSet &) const override;
     void finalizeCodeBlock(etiss::CodeBlock &) const override;
     void *getPluginHandle() override;
 
     // Functionality
-    int maybeSemihostingCall();
+    etiss_int64 semihostingCall(etiss_uint64 operation, etiss_uint64 parameter);
 
   protected:
     // Plugin
     std::string _getPluginName() const override;
     void finalizeInstr(etiss::instr::Instruction &) const;
-
-    etiss_int64 semihostingCall(etiss_uint64 operation, etiss_uint64 parameter);
 
     /// fieldNo starts at 0
     etiss_uint64 readFromStructUInt(etiss_uint64 address, int fieldNo);

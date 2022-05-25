@@ -7938,46 +7938,71 @@ return true;
 nullptr
 );
 //-------------------------------------------------------------------------------------------------------------------
+// EBREAK ----------------------------------------------------------------------
 static InstructionDefinition ebreak_(
- 		ISA32_RISCV64,
- 		"ebreak",
- 		(uint32_t)0x100073,
- 		(uint32_t) 0xffffffff,
- 		[] (BitArray & ba,etiss::CodeSet & cs,InstructionContext & ic)
- 		{
- 		CodePart & partInit = cs.append(CodePart::INITIALREQUIRED);
-		partInit.getAffectedRegisters().add("instructionPointer",64);
- 	partInit.code() = std::string("//ebreak\n")+
- 			"etiss_uint32 exception = 0;\n"
- 			"etiss_uint32 temp = 0;\n"
- 			"etiss_uint8 * tmpbuf = (etiss_uint8 *)&temp;\n"
-			#if RISCV64_Pipeline1
-			"etiss_uint32 resource_time [100] = {1, 1, 1, 3, 1, 1, 1, 1, 4};\n"
-			"etiss_uint32 resources [100][100] = {{0, 1}, {2}, {5}, {6, 7}};\n"
-			"etiss_uint32 num_stages = 4;\n"
-			"etiss_uint32 num_resources[100] = {2, 1, 1, 2};\n"
-			"handleResources(resource_time, resources, num_stages, num_resources, cpu);\n"
-			#endif
-			#if RISCV64_Pipeline2
-			"etiss_uint32 resource_time [100] = {1, 1, 1, 3, 1, 1, 1, 1, 4};\n"
-			"etiss_uint32 resources [100][100] = {{0, 1}, {2}, {5}, {6, 7}};\n"
-			"etiss_uint32 num_stages = 4;\n"
-			"etiss_uint32 num_resources[100] = {2, 1, 1, 2};\n"
-			"handleResources(resource_time, resources, num_stages, num_resources, cpu);\n"
-			#endif
+    ISA32_RISCV64, "ebreak", (uint32_t)0x100073, (uint32_t)0xffffffff,
+    [](BitArray &ba, etiss::CodeSet &cs, InstructionContext &ic)
+    {
+        // -----------------------------------------------------------------------------
 
- 			
-"return ETISS_RETURNCODE_CPUFINISHED; \n"
- 			
-		"cpu->instructionPointer = " +toString((uint64_t)(ic.current_address_+ 4 ))+"ULL; \n"
-		
-		"return exception;\n"
-; 
-return true;
-},
-0,
-nullptr
-);
+        // -----------------------------------------------------------------------------
+
+        // -----------------------------------------------------------------------------
+
+        // -----------------------------------------------------------------------------
+
+        CodePart &partInit = cs.append(CodePart::INITIALREQUIRED);
+
+        partInit.code() = std::string("//EBREAK\n");
+
+        // -----------------------------------------------------------------------------
+        partInit.code() += "int exception = 0;\n";
+        partInit.code() += "cpu->instructionPointer = " + std::to_string(ic.current_address_ + 4U) + ";\n";
+        partInit.code() += "etiss_uint32 mem_val_0;\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_ - 4U) + ", (etiss_uint8*)&mem_val_0, 4);\n";
+        partInit.code() += "etiss_uint32 pre = (etiss_uint32)(mem_val_0);\n";
+        partInit.code() += "etiss_uint32 mem_val_1;\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_) + ", (etiss_uint8*)&mem_val_1, 4);\n";
+        partInit.code() += "etiss_uint32 ebreak = (etiss_uint32)(mem_val_1);\n";
+        partInit.code() += "etiss_uint32 mem_val_2;\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_ + 4U) + ", (etiss_uint8*)&mem_val_2, 4);\n";
+        partInit.code() += "etiss_uint32 post = (etiss_uint32)(mem_val_2);\n";
+        partInit.code() += "if (pre == 32509971U && ebreak == 1048691U && post == 1081102355U) {\n";
+        partInit.code() += "etiss_uint32 operation = *((RISCV64*)cpu)->X[" + std::to_string(10U) + "];\n";
+        partInit.code() += "etiss_uint32 parameter = *((RISCV64*)cpu)->X[" + std::to_string(11U) + "];\n";
+        partInit.code() += "*((RISCV64*)cpu)->X[" + std::to_string(10U) +
+                           "] = etiss_semihosting(operation, parameter);\n";
+        partInit.code() += "}\n";
+        partInit.code() += " else {\n";
+        partInit.code() += "exception = ETISS_RETURNCODE_BREAKPOINT;";
+        partInit.code() += "}\n";
+        partInit.code() += "return exception;\n";
+        // -----------------------------------------------------------------------------
+
+        partInit.getRegisterDependencies().add(reg_name[10U], 32);
+        partInit.getRegisterDependencies().add(reg_name[11U], 32);
+        partInit.getAffectedRegisters().add(reg_name[10U], 32);
+        partInit.getAffectedRegisters().add("instructionPointer", 32);
+
+        return true;
+    },
+    0,
+    [](BitArray &ba, Instruction &instr)
+    {
+        // -----------------------------------------------------------------------------
+
+        // -----------------------------------------------------------------------------
+
+        std::stringstream ss;
+        // -----------------------------------------------------------------------------
+        ss << "ebreak"
+           << " # " << ba << (" []");
+        // -----------------------------------------------------------------------------
+        return ss.str();
+    });
 //-------------------------------------------------------------------------------------------------------------------
 static InstructionDefinition sret_(
  		ISA32_RISCV64,

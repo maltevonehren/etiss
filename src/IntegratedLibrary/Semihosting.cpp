@@ -17,11 +17,26 @@ std::string Semihosting::_getPluginName() const
     return "semihosting";
 }
 
+extern "C"
+{
+    etiss::plugin::Semihosting *etiss_semihosting_plugin;
+    etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter)
+    {
+        if (etiss_semihosting_plugin == nullptr)
+        {
+            etiss::log(etiss::WARNING, "semihosting called but semihosting plugin not initialized");
+            return 0;
+        }
+        return etiss_semihosting_plugin->semihostingCall(operation, parameter);
+    }
+}
+
 void Semihosting::init(ETISS_CPU *cpu, ETISS_System *system, etiss::CPUArch *arch)
 {
     arch_ = arch;
     cpu_ = cpu;
     system_ = system;
+    etiss_semihosting_plugin = this;
 }
 
 void Semihosting::cleanup()
@@ -29,47 +44,18 @@ void Semihosting::cleanup()
     arch_ = nullptr;
     cpu_ = nullptr;
     system_ = nullptr;
-}
-
-void Semihosting::finalizeInstr(etiss::instr::Instruction &instr) const
-{
-    std::string pcode = getPointerCode();
-    if (instr.name_ == "ebreak")
-    {
-        instr.addCallback(
-            [pcode](etiss::instr::BitArray &ba, etiss::CodeSet &cs, etiss::instr::InstructionContext &context)
-            {
-                std::stringstream ss;
-
-                ss << "int semihosting_result = semihosting_maybe_execute(" << pcode << ");\n";
-                ss << "if (semihosting_result == -1) {\n";
-                ss << "    return ETISS_RETURNCODE_CPUFINISHED;\n";
-                ss << "}\n";
-                ss << "if (semihosting_result > 0) {\n";
-                ss << "    cpu->instructionPointer += 4ULL;\n";
-                ss << "    break;\n";
-                ss << "}\n";
-
-                cs.append(etiss::CodePart::PREINITIALDEBUGRETURNING).code() = ss.str();
-                return true;
-            },
-            0);
-    }
-}
-
-void Semihosting::finalizeInstrSet(etiss::instr::ModedInstructionSet &mis) const
-{
-    mis.foreach (
-        [this](etiss::instr::VariableInstructionSet &vis)
-        {
-            vis.foreach ([this](etiss::instr::InstructionSet &is)
-                         { is.foreach ([this](etiss::instr::Instruction &instr) { finalizeInstr(instr); }); });
-        });
+    etiss_semihosting_plugin = nullptr;
 }
 
 void Semihosting::finalizeCodeBlock(etiss::CodeBlock &block) const
 {
-    block.fileglobalCode().insert("extern int semihosting_maybe_execute(void *);\n\n");
+    std::stringstream ss;
+    ss << "extern etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter);\n";
+    // ss << "etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter) {\n";
+    // ss << "    return etiss_semihosting_(operation, parameter);\n";
+    // ss << "}\n";
+
+    block.fileglobalCode().insert(ss.str());
 }
 
 void *Semihosting::getPluginHandle()
@@ -304,7 +290,8 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     case 0x18: // SYS_EXIT
     {
         etiss::log(etiss::INFO, "Semihosting: SYS_EXIT -> exit simulator");
-        // exiting handled in maybeSemihostingCall
+        // TODO
+        exit(0);
         return 0;
     }
     default:
@@ -312,48 +299,5 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         msg << "Semihosting: unknown operation number: " << operationNumber;
         etiss::log(etiss::WARNING, msg.str());
         return 0;
-    }
-}
-
-int Semihosting::maybeSemihostingCall()
-{
-    etiss_int64 pc = cpu_->instructionPointer;
-
-    etiss_uint32 buf[3];
-    system_->dbg_read(system_->handle, pc - 4, (etiss_uint8 *)&buf, 12);
-
-    if (buf[0] == 0x01f01013 && buf[1] == 0x00100073 && buf[2] == 0x40705013)
-    {
-        auto operationNumberRegister = plugin_core_->getStruct()->findName("R10");
-        auto parameterRegister = plugin_core_->getStruct()->findName("R11");
-
-        if (operationNumberRegister && parameterRegister)
-        {
-            etiss_uint64 operationNumber = operationNumberRegister.get()->read();
-            etiss_uint64 parameter = parameterRegister.get()->read();
-            etiss_int64 retval = semihostingCall(operationNumber, parameter);
-
-            operationNumberRegister.get()->write(retval);
-
-            if (operationNumber == 0x18)
-            {
-                return -1;
-            }
-        }
-        else
-        {
-            etiss::log(etiss::ERROR, "Semihosting could not read registers");
-        }
-        return 1;
-    }
-
-    return 0;
-}
-
-extern "C"
-{
-    int semihosting_maybe_execute(void *plugin)
-    {
-        return ((etiss::plugin::Semihosting *)plugin)->maybeSemihostingCall();
     }
 }
