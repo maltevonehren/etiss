@@ -5,8 +5,6 @@
 
 #include "etiss/Plugin.h"
 
-#include <memory>
-
 namespace etiss
 {
 
@@ -52,7 +50,7 @@ class Semihosting : public etiss::TranslationPlugin
     std::vector<etiss_uint8> readSystemMemory(etiss_uint64 address, etiss_uint64 length);
     void writeSystemMemory(etiss_uint64 address, std::vector<etiss_uint8> data);
 
-    std::map<etiss_uint64, FILE *> openFiles;
+    std::map<etiss_uint64, etiss_uint64> openFiles;
     etiss_uint64 nextFd = 0;
     etiss_int64 semihosting_errno = 0;
 };
