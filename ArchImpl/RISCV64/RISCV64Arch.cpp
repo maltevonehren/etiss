@@ -7973,8 +7973,11 @@ static InstructionDefinition ebreak_(
         partInit.code() += "if (pre == 32509971U && ebreak == 1048691U && post == 1081102355U) {\n";
         partInit.code() += "etiss_uint32 operation = *((RISCV64*)cpu)->X[" + std::to_string(10U) + "];\n";
         partInit.code() += "etiss_uint32 parameter = *((RISCV64*)cpu)->X[" + std::to_string(11U) + "];\n";
-        partInit.code() += "*((RISCV64*)cpu)->X[" + std::to_string(10U) +
-                           "] = etiss_semihosting(" + std::to_string(64) + ", operation, parameter);\n";
+		partInit.code() += "struct semihosting_return result = etiss_semihosting(" + std::to_string(64) + ", operation, parameter);\n";
+        partInit.code() += "*((RISCV64*)cpu)->X[" + std::to_string(10U) + "] = result.value;\n";
+        partInit.code() += "if (result.should_exit) {\n";
+        partInit.code() += "exception = ETISS_RETURNCODE_CPUFINISHED;\n";
+        partInit.code() += "}\n";
         partInit.code() += "}\n";
         partInit.code() += " else {\n";
         partInit.code() += "exception = ETISS_RETURNCODE_BREAKPOINT;";
