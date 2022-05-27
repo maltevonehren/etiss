@@ -8,6 +8,28 @@
 
 using namespace etiss::plugin;
 
+extern "C"
+{
+    etiss::plugin::Semihosting *etiss_semihosting_plugin;
+    etiss_uint64 etiss_semihosting(etiss_uint32 XLEN, etiss_uint64 operation, etiss_uint64 parameter)
+    {
+        if (etiss_semihosting_plugin == nullptr)
+        {
+            etiss::log(etiss::WARNING, "semihosting called but semihosting plugin not initialized");
+            return 0;
+        }
+        return etiss_semihosting_plugin->semihostingCall(XLEN, operation, parameter);
+    }
+}
+
+void Semihosting::finalizeCodeBlock(etiss::CodeBlock &block) const
+{
+    std::stringstream ss;
+    ss << "extern etiss_uint64 etiss_semihosting(etiss_uint32 XLEN, etiss_uint64 operation, etiss_uint64 parameter);\n";
+
+    block.fileglobalCode().insert(ss.str());
+}
+
 Semihosting::~Semihosting()
 {
     // TODO: close files
@@ -16,20 +38,6 @@ Semihosting::~Semihosting()
 std::string Semihosting::_getPluginName() const
 {
     return "semihosting";
-}
-
-extern "C"
-{
-    etiss::plugin::Semihosting *etiss_semihosting_plugin;
-    etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter)
-    {
-        if (etiss_semihosting_plugin == nullptr)
-        {
-            etiss::log(etiss::WARNING, "semihosting called but semihosting plugin not initialized");
-            return 0;
-        }
-        return etiss_semihosting_plugin->semihostingCall(operation, parameter);
-    }
 }
 
 void Semihosting::init(ETISS_CPU *cpu, ETISS_System *system, etiss::CPUArch *arch)
@@ -48,25 +56,14 @@ void Semihosting::cleanup()
     etiss_semihosting_plugin = nullptr;
 }
 
-void Semihosting::finalizeCodeBlock(etiss::CodeBlock &block) const
-{
-    std::stringstream ss;
-    ss << "extern etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter);\n";
-    // ss << "etiss_uint64 etiss_semihosting(etiss_uint64 operation, etiss_uint64 parameter) {\n";
-    // ss << "    return etiss_semihosting_(operation, parameter);\n";
-    // ss << "}\n";
-
-    block.fileglobalCode().insert(ss.str());
-}
-
 void *Semihosting::getPluginHandle()
 {
     return (void *)this;
 }
 
-etiss_uint64 Semihosting::readFromStructUInt(etiss_uint64 address, int fieldNo)
+etiss_uint64 Semihosting::readStructField(etiss_uint32 XLEN, etiss_uint64 address, int fieldNo)
 {
-    int width = 8; // TODO: change depending on ISA
+    int width = XLEN / 8;
     etiss_uint64 field;
     system_->dbg_read(system_->handle, address + width * fieldNo, (etiss_uint8 *)&field, width); // TODO throw error
     return field;
@@ -87,7 +84,7 @@ void Semihosting::writeSystemMemory(etiss_uint64 address, std::vector<etiss_uint
 
 const char *mode_strs[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "w+b", "a", "ab", "a+", "a+b" };
 
-etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uint64 parameter)
+etiss_int64 Semihosting::semihostingCall(etiss_uint32 XLEN, etiss_uint64 operationNumber, etiss_uint64 parameter)
 {
     switch (operationNumber)
     {
@@ -99,7 +96,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     case SYS_SEEK:
     case SYS_FLEN:
     {
-        etiss_uint64 fd = readFromStructUInt(parameter, 0);
+        etiss_uint64 fd = readStructField(XLEN, parameter, 0);
         if (openFiles.count(fd) == 0)
         {
             std::stringstream ss;
@@ -133,8 +130,8 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         }
         case SYS_WRITE:
         {
-            etiss_uint64 address = readFromStructUInt(parameter, 1);
-            etiss_uint64 count = readFromStructUInt(parameter, 2);
+            etiss_uint64 address = readStructField(XLEN, parameter, 1);
+            etiss_uint64 count = readStructField(XLEN, parameter, 2);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_WRITE fd " << fd;
@@ -147,8 +144,8 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         }
         case SYS_READ:
         {
-            etiss_uint64 address = readFromStructUInt(parameter, 1);
-            etiss_uint64 count = readFromStructUInt(parameter, 2);
+            etiss_uint64 address = readStructField(XLEN, parameter, 1);
+            etiss_uint64 count = readStructField(XLEN, parameter, 2);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_READ fd " << fd;
@@ -172,7 +169,7 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
         }
         case SYS_SEEK:
         {
-            etiss_uint64 position = readFromStructUInt(parameter, 1);
+            etiss_uint64 position = readStructField(XLEN, parameter, 1);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_SEEK fd " << fd << ": " << position;
@@ -206,9 +203,9 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     }
     case SYS_OPEN:
     {
-        etiss_uint64 path_str_addr = readFromStructUInt(parameter, 0);
-        etiss_uint64 mode = readFromStructUInt(parameter, 1);
-        etiss_uint64 path_str_len = readFromStructUInt(parameter, 2);
+        etiss_uint64 path_str_addr = readStructField(XLEN, parameter, 0);
+        etiss_uint64 mode = readStructField(XLEN, parameter, 1);
+        etiss_uint64 path_str_len = readStructField(XLEN, parameter, 2);
         if (mode > 11)
         {
             // invalid mode
@@ -258,8 +255,8 @@ etiss_int64 Semihosting::semihostingCall(etiss_uint64 operationNumber, etiss_uin
     }
     case SYS_REMOVE:
     {
-        etiss_uint64 path_str_addr = readFromStructUInt(parameter, 0);
-        etiss_uint64 path_str_len = readFromStructUInt(parameter, 1);
+        etiss_uint64 path_str_addr = readStructField(XLEN, parameter, 0);
+        etiss_uint64 path_str_len = readStructField(XLEN, parameter, 1);
 
         std::vector<etiss_uint8> buffer = readSystemMemory(path_str_addr, path_str_len);
         std::string path_str(buffer.begin(), buffer.end());

@@ -26,15 +26,19 @@ class Semihosting : public etiss::TranslationPlugin
     void *getPluginHandle() override;
 
     // Functionality
-    etiss_int64 semihostingCall(etiss_uint64 operation, etiss_uint64 parameter);
+    etiss_int64 semihostingCall(etiss_uint32 XLEN, etiss_uint64 operation, etiss_uint64 parameter);
 
   protected:
     // Plugin
     std::string _getPluginName() const override;
     void finalizeInstr(etiss::instr::Instruction &) const;
 
+    CPUArch *arch_;
+    ETISS_CPU *cpu_;
+    ETISS_System *system_;
+
     /// fieldNo starts at 0
-    etiss_uint64 readFromStructUInt(etiss_uint64 address, int fieldNo);
+    etiss_uint64 readStructField(etiss_uint32 XLEN, etiss_uint64 address, int fieldNo);
 
     std::vector<etiss_uint8> readSystemMemory(etiss_uint64 address, etiss_uint64 length);
     void writeSystemMemory(etiss_uint64 address, std::vector<etiss_uint8> data);
@@ -42,10 +46,6 @@ class Semihosting : public etiss::TranslationPlugin
     std::map<etiss_uint64, FILE *> openFiles;
     etiss_uint64 nextFd = 0;
     etiss_uint64 semihosting_errno = 0;
-
-    CPUArch *arch_;
-    ETISS_CPU *cpu_;
-    ETISS_System *system_;
 };
 } // namespace plugin
 

@@ -6701,7 +6701,7 @@ static InstructionDefinition ebreak_(
         partInit.code() += "etiss_uint32 operation = *((RISCV*)cpu)->X[" + std::to_string(10U) + "];\n";
         partInit.code() += "etiss_uint32 parameter = *((RISCV*)cpu)->X[" + std::to_string(11U) + "];\n";
         partInit.code() += "*((RISCV*)cpu)->X[" + std::to_string(10U) +
-                           "] = etiss_semihosting(operation, parameter);\n";
+                           "] = etiss_semihosting(" + std::to_string(32) + ", operation, parameter);\n";
         partInit.code() += "}\n";
         partInit.code() += " else {\n";
         partInit.code() += "exception = ETISS_RETURNCODE_BREAKPOINT;";
