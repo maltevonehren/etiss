@@ -207,11 +207,12 @@ semihosting_return Semihosting::semihostingCall(etiss_uint32 XLEN, etiss_uint64 
             etiss::log(etiss::INFO, ss.str());
 
             int currentPos = lseek(file, 0, SEEK_CUR);
-            if (lseek(file, 0, SEEK_END) < 0)
+            if (currentPos < 0)
             {
                 semihosting_errno = ESPIPE;
                 return { 0, -1 };
             }
+            lseek(file, 0, SEEK_END);
             int length = lseek(file, 0, SEEK_CUR);
             lseek(file, currentPos, SEEK_SET);
             return { 0, length };
