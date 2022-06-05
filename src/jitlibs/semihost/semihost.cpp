@@ -1,5 +1,3 @@
-
-
 #include "etiss/ETISS.h"
 
 #include "SemihostingCalls.h"
@@ -229,6 +227,16 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         etiss::log(etiss::VERBOSE, ss2.str());
 
         return (etiss_int64)fd;
+    }
+    case SYS_WRITEC:
+    {
+        etiss_uint64 character = semihostReadStructField(etissSystem, XLEN, parameter, 0);
+        putchar(character);
+        return 0;
+    }
+    case SYS_READC:
+    {
+        return getchar();
     }
     case SYS_REMOVE:
     {
