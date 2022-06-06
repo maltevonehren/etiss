@@ -1,4 +1,4 @@
-# Generated on Wed, 25 May 2022 18:09:21 +0200.
+# Generated on Sun, 05 Jun 2022 16:07:34 +0200.
 #
 # This file contains the CMake build info for the RV32IMACFD core architecture.
 
@@ -23,9 +23,9 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	RV32IMACFD_tum_retInstr.cpp
 	RV32IMACFD_RV32AInstr.cpp
 	RV32IMACFD_tum_rvaInstr.cpp
+	RV32IMACFD_tum_semihostingInstr.cpp
 )
 
-FILE(COPY "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Funcs.h" DESTINATION "${ETISS_BINARY_DIR}/include/jit/Arch/${PROJECT_NAME}")
 INSTALL(FILES "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Funcs.h" DESTINATION "include/jit/Arch/${PROJECT_NAME}")
 
 ETISSPluginArch(${PROJECT_NAME})
