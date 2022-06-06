@@ -22,7 +22,7 @@ extern "C"
 etiss_uint64 semihostReadStructField(ETISS_System *etissSystem, etiss_uint32 XLEN, etiss_uint64 address, int fieldNo)
 {
     int width = XLEN / 8;
-    etiss_uint64 field;
+    etiss_uint64 field = 0;
     etissSystem->dbg_read(etissSystem->handle, address + width * fieldNo, (etiss_uint8 *)&field,
                           width); // TODO throw error
     return field;
@@ -41,6 +41,14 @@ void semihostWriteSystemMemory(ETISS_System *etissSystem, etiss_uint64 address, 
     etissSystem->dbg_write(etissSystem->handle, address, data.data(), data.size());
 }
 
+std::string semihostReadString(ETISS_System *etissSystem, etiss_uint64 address, etiss_uint64 length)
+{
+    std::vector<etiss_uint8> buffer = semihostReadSystemMemory(etissSystem, address, length);
+    std::string str(buffer.begin(), buffer.end());
+    return str;
+}
+
+#define TICKER_FREQ 1000
 const int mode_flags[] = {
     O_RDONLY,                      // "r",
     O_RDONLY,                      // "rb"
@@ -126,7 +134,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             etiss_uint64 count = semihostReadStructField(etissSystem, XLEN, parameter, 2);
 
             std::stringstream ss;
-            ss << "Semihosting: SYS_READ fd " << fd;
+            ss << "Semihosting: SYS_READ fd " << fd << " count " << count;
             etiss::log(etiss::VERBOSE, ss.str());
 
             std::vector<etiss_uint8> buffer;
@@ -192,8 +200,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             return -1;
         }
 
-        std::vector<etiss_uint8> buffer = semihostReadSystemMemory(etissSystem, path_str_addr, path_str_len);
-        std::string path_str(buffer.begin(), buffer.end());
+        std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
         std::stringstream ss1;
         ss1 << "Semihosting: SYS_OPEN \"" << path_str << "\"";
@@ -243,8 +250,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         etiss_uint64 path_str_addr = semihostReadStructField(etissSystem, XLEN, parameter, 0);
         etiss_uint64 path_str_len = semihostReadStructField(etissSystem, XLEN, parameter, 1);
 
-        std::vector<etiss_uint8> buffer = semihostReadSystemMemory(etissSystem, path_str_addr, path_str_len);
-        std::string path_str(buffer.begin(), buffer.end());
+        std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
         std::stringstream ss;
         ss << "Semihosting: SYS_REMOVE \"" << path_str << "\"";
@@ -256,6 +262,11 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             return -1;
         }
         return 0;
+    }
+    case SYS_CLOCK:
+    {
+        // return centiseconds since some arbitrary start point
+        return cpu->cpuTime_ps / 10000000000; // 10 * 10^9
     }
     case SYS_TIME:
     {
@@ -277,10 +288,33 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         etiss::shutdown();
         exit(0);
     }
-    default:
-        std::stringstream msg;
-        msg << "Semihosting: unknown operation number: " << operationNumber;
-        etiss::log(etiss::WARNING, msg.str());
+    case SYS_ELAPSED:
+    {
+        return cpu->cpuTime_ps / TICKER_FREQ;
+    }
+    case SYS_TICKFREQ:
+    {
+        return TICKER_FREQ;
+    }
+    case SYS_WRITE0:
+    case SYS_ISERROR:
+    case SYS_TMPNAM:
+    case SYS_RENAME:
+    case SYS_SYSTEM:
+    case SYS_GET_CMDLINE:
+    case SYS_HEAPINFO:
+    case SYS_EXIT_EXTENDED:
+    {
+        std::stringstream ss;
+        ss << "Semihosting: operation not implemented: " << operationNumber;
+        etiss::log(etiss::WARNING, ss.str());
         return 0;
     }
-}
+    default:
+    {
+        std::stringstream ss;
+        ss << "Semihosting: unknown operation number: " << operationNumber;
+        etiss::log(etiss::WARNING, ss.str());
+        return 0;
+    }
+    }
