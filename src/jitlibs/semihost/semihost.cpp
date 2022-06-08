@@ -318,3 +318,4 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         return 0;
     }
     }
+}
