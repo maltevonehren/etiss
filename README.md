@@ -121,7 +121,16 @@ Install the package:
 
 ## Example Target Software
 
-// TODO
+Example target software can be automatically build for different architectures and placed under `<etiss_install_dir>/examples/SW/<arch>/bin`
+if corresponding toolchain is installed.
+
+Quick start for RISC-V (See the corresponding [README](examples/SW/README.md) for more details and other architectures):
+- Set `EXAMPLES_BUILD_RISCV=ON` (during the configure step with `-DEXAMPLES_BUILD_RISCV=ON` or later in the cache).
+- If the toolchain name is not `riscv64-unknown-elf` set `RISCV_TOOLCHAIN_BASENAME` to the correct name
+- If the toolchain is not on the path set `RISCV_TOOLCHAIN_PREFIX` to the folder where the toolchain can be found
+- the target code is found in
+  `<etiss_install_dir>/examples/SW/rv32gc/bin` 
+  and `<etiss_install_dir>/examples/SW/rv64gc/bin`
 
 ## Licensing and Copyright
 
