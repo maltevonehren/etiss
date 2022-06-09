@@ -2,10 +2,7 @@
 
 #include "SemihostingCalls.h"
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdint.h>
+#include <cstdio>
 
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter);
@@ -48,27 +45,26 @@ std::string semihostReadString(ETISS_System *etissSystem, etiss_uint64 address, 
     return str;
 }
 
+bool is_std_in_out_err(FILE *file)
+{
+    return file == stdin || file == stdout || file == stderr;
+}
+
 #define TICKER_FREQ 1000
-const int mode_flags[] = {
-    O_RDONLY,                      // "r",
-    O_RDONLY,                      // "rb"
-    O_RDWR,                        // "r+"
-    O_RDWR,                        // "r+b"
-    O_CREAT | O_TRUNC | O_WRONLY,  // "w"
-    O_CREAT | O_TRUNC | O_WRONLY,  // "wb"
-    O_CREAT | O_TRUNC | O_RDWR,    // "w+"
-    O_CREAT | O_TRUNC | O_RDWR,    // "w+b"
-    O_CREAT | O_APPEND | O_WRONLY, // "a"
-    O_CREAT | O_APPEND | O_WRONLY, // "ab"
-    O_CREAT | O_APPEND | O_RDWR,   // "a+"
-    O_CREAT | O_APPEND | O_RDWR    // "a+b"
-};
+const char *mode_strs[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "w+b", "a", "ab", "a+", "a+b" };
+
+#define CHECK_NEGATIVE_RETURN(var) \
+    if ((var) < 0)                 \
+    {                              \
+        semihosting_errno = errno; \
+        return -1;                 \
+    }
 
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter)
 {
 
-    static std::map<etiss_uint64, etiss_uint64> openFiles;
+    static std::map<etiss_uint64, FILE *> openFiles;
     static etiss_uint64 nextFd;
     static etiss_int64 semihosting_errno;
 
@@ -92,7 +88,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             semihosting_errno = EBADF;
             return -1;
         }
-        etiss_uint64 file = openFiles[fd];
+        auto file = openFiles[fd];
 
         switch (operationNumber)
         {
@@ -103,15 +99,9 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             etiss::log(etiss::VERBOSE, ss.str());
 
             openFiles.erase(fd);
-            if (fd > 2)
-            {
-                // do not close stdin, stdout, stderr of host process
-                if (close(file) < 0)
-                {
-                    semihosting_errno = errno;
-                    return -1;
-                }
-            }
+            // do not close stdin, stdout, stderr of host process
+            if (!is_std_in_out_err(file))
+                fclose(file);
             return 0;
         }
         case SYS_WRITE:
@@ -124,9 +114,9 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             etiss::log(etiss::VERBOSE, ss.str());
 
             std::vector<etiss_uint8> buffer = semihostReadSystemMemory(etissSystem, address, count);
-            etiss_int64 num_written = write(file, buffer.data(), count);
 
-            return (etiss_int64)count - num_written;
+            size_t num_written = fwrite(buffer.data(), 1, count, file);
+            return count - num_written;
         }
         case SYS_READ:
         {
@@ -137,9 +127,14 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: SYS_READ fd " << fd << " count " << count;
             etiss::log(etiss::VERBOSE, ss.str());
 
+            std::cout << "fd maps to " << fileno(file) << "\n";
+
             std::vector<etiss_uint8> buffer;
             buffer.resize(count);
-            etiss_int64 num_read = read(file, buffer.data(), count);
+
+            size_t num_read = fread(buffer.data(), 1, count, file);
+
+            std::cout << "after reading\n";
             buffer.resize(num_read);
             semihostWriteSystemMemory(etissSystem, address, buffer);
 
@@ -151,7 +146,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: SYS_ISTTY fd " << fd;
             etiss::log(etiss::VERBOSE, ss.str());
 
-            return isatty(file);
+            return is_std_in_out_err(file);
         }
         case SYS_SEEK:
         {
@@ -161,12 +156,8 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: SYS_SEEK fd " << fd << ": " << position;
             etiss::log(etiss::VERBOSE, ss.str());
 
-            int retval = lseek(file, position, SEEK_SET);
-            if (retval < 0)
-            {
-                semihosting_errno = errno;
-                return -1;
-            }
+            int retval = fseek(file, position, SEEK_SET);
+            CHECK_NEGATIVE_RETURN(retval);
             return 0;
         }
         case SYS_FLEN:
@@ -175,16 +166,12 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: SYS_FLEN fd " << fd;
             etiss::log(etiss::VERBOSE, ss.str());
 
-            int currentPos = lseek(file, 0, SEEK_CUR);
-            if (currentPos < 0)
-            {
-                semihosting_errno = ESPIPE;
-                return -1;
-            }
-            lseek(file, 0, SEEK_END);
-            int length = lseek(file, 0, SEEK_CUR);
-            lseek(file, currentPos, SEEK_SET);
-            return length;
+            size_t currentPos = ftell(file);
+            CHECK_NEGATIVE_RETURN(currentPos);
+            fseek(file, 0, SEEK_END);
+            size_t length = ftell(file);
+            fseek(file, currentPos, SEEK_SET);
+            return (etiss_int64)length;
         }
         }
     }
@@ -202,24 +189,24 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
 
         std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
-        std::stringstream ss1;
-        ss1 << "Semihosting: SYS_OPEN \"" << path_str << "\"";
-        etiss::log(etiss::VERBOSE, ss1.str());
+        std::stringstream ss;
+        ss << "Semihosting: SYS_OPEN \"" << path_str << "\"";
+        etiss::log(etiss::VERBOSE, ss.str());
 
-        etiss_uint64 file = -1;
+        FILE *file = nullptr;
         // special file path for opening stdin, stdout and stderr
         if (path_str == ":tt")
         {
             if (mode <= 3)
-                file = fileno(stdin);
+                file = stdin;
             else if (mode >= 4 && mode <= 7)
-                file = fileno(stdout);
+                file = stdout;
             else // if (mode >= 8 && mode <= 11)
-                file = fileno(stderr);
+                file = stderr;
         }
         else
         {
-            file = open(path_str.c_str(), mode_flags[mode]);
+            file = fopen(path_str.c_str(), mode_strs[mode]);
             if (file < 0)
             {
                 semihosting_errno = errno;
@@ -228,10 +215,6 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         }
         etiss_uint64 fd = nextFd++;
         openFiles[fd] = file;
-
-        std::stringstream ss2;
-        ss2 << "Semihosting: got fd " << fd;
-        etiss::log(etiss::VERBOSE, ss2.str());
 
         return (etiss_int64)fd;
     }
