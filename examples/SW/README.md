@@ -13,7 +13,7 @@ These are installed into the `<etiss_install_dir>/examples/SW/<arch>/bin` direct
 
 - Setting `EXAMPLES_BUILD_RISCV` to `ON` will build the software for rv32gc and rv64gc
  
-(The corresponding toolchains have to be installed see [Specifying compiler location](#specifying-compiler-location))
+(The corresponding toolchain has to be installed. See [Specifying compiler location](#specifying-compiler-location))
 
 ## Build Custom Software using provided Toolchain Files
 
@@ -28,11 +28,15 @@ It can be customized using CMake cache variables.
 - The toolchain basename can be overwritten using `<ARCH>_TOOLCHAIN_BASENAME`.
 - In case the toolchain is not on the path its location get be specified with `<ARCH>_TOOLCHAIN_PREFIX`
 
+The main cmake project will pass these variables on to the external projects.
+See [this section of the main README](../../README.md#example-target-software) for an example.
+
 The defaults are:
 - `RISCV_TOOLCHAIN_BASENAME` = `riscv64-unknown-elf`
 
 ## Changing code in `examples/SW/target_code`
 
-Due to the nature of CMakes ExternalProject_Add, changes to the source files in `target_code` do not trigger a rebuild.
-While developing example code in `target_code` the CMake cache variable `EXAMPLES_ALWAYS_REBUILD` can be set to `ON`.
-This will rebuild the example code during every build.
+Due to the nature of CMakes ExternalProject_Add, changes to the source files in `target_code` do not trigger a build of the target software.
+When changing code in the `target_code` folder, make sure to set `EXAMPLES_ALWAYS_BUILD` to `ON`.
+This will trigger a build for the target software during every ETISS build.
+(During this build only the changed code will be compiled again)
