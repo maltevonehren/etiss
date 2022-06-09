@@ -119,9 +119,9 @@ Install the package:
 
 	$ cmake --build . --config $BUILD_TYPE --target install
 
-## Example project to run etiss
+## Example Target Software
 
-Follow steps in `<etiss_install_path>/examples/README`
+// TODO
 
 ## Licensing and Copyright
 

@@ -1,17 +1,11 @@
 # ETISS Application Examples
 
-The projects in this folder cannot be used directly. Once ETISS is build
-and installed, a copy of these projects is available in the install
-directory:`<build_dir>/installed/examples`
+This folder contains application examples for ETISS in the following directories:
 
-They can be compiled and run simulation from there.
-
-  > NOTE: bare\_etiss\_processor contains actual ETISS application example
-  while SW folder accommodates target software for simulation.
-
-## Getting Started
-Refer to the `README` located in the parent folder to build and install
-ETISS. For each application project, refer to `README`s in project folders
-respectively.
-
-In the MakeFile for each example, change `TOOLBIN` to the address of gcc toolchain.
+- The `SW` folder contains example target software for simulation
+  as well as simple toolchain files to build them. 
+  It can get build during the regular build process
+  (see its [README](SW/README.md))
+- The `bare_etiss_processor` used to be in this folder but has been moved to `src/bare_etiss_processor`.
+  It gets build as a part of the regular build process
+  (see its [README](../src/bare_etiss_processor/README.md)).

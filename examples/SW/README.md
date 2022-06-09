@@ -1,32 +1,32 @@
-# Target Software
+# Target Software and Toolchain Files
 
-The code in this folder cannot be used directly. Once ETISS is build and 
-installed, a copy of these files is available in the install 
-directory:`<build_dir>/installed/examples/SW`
+Example target software for simulation is located in the `./target_code` directory
+(see its [README](target_code/ReadME.md) for explanations on the different programs).
+It can be automatically build for different architectures during the regular build process (see [explanation below](#build-examples-during-regular-build-process)).
 
-The target softwares for simulated architecture are located in this folder. 
-Or1k and riscv directories contain boot code, linker script and Makefile
-for each architecture respectively. These provided files serve as 
-infrastructure when developing software. 
+## Build Examples during regular Build Process
 
-The source codes in `./test_cases` are benchmarks provisioned with ETISS 
-project, which are called by main function in or1k and riscv software
-as test example.
+The `target_code` folder is a standalone CMake project.
+The same project is build multiple times with a different configuration,
+resulting in binaries for the different architectures (currently rv32gc and rv64gc).
+These are installed into the `<etiss_install_dir>/examples/SW/<arch>/bin` directory.
 
-## Prerequisites
-In order to compile target software for an simulated architecture, the 
-following requirements has to be met:
+This is using the `ExternalProject_Add` command from CMake with a toolchain file for each architecture.
 
-  - Toolchain path in corresponding Makefile has to point to correct 
-  cross-compile `toolchain`
-  - Memory address space has to be correctly allocated in linker
-  script for each system.
-  - The Makefile split memory image into ROM and RAM, which should be 
-  consistent with linker script.
-  - The simulated memory space has to be greater than **0x80000000** 
-  to support *cust_print()* fucntion, which provides feature to print 
-  out in terminal.
+## Build Custom Software using provided Toolchain Files
 
-## Documentation
-  - RISCV: see README @`./riscv` 
-  - Or1k: see README @`./or1k`
+`riscv-toolchain.cmake` is a simple toolchain file for compiling code to RISC-V with semihosting.
+It is used for building the example target software but can also be used to build your own software for simulation. It is copied to `<etiss_install_dir>/lib/CMake/toolchains/`.
+
+## Specifying compiler location
+
+The toolchain files contain a default compiler setup that should work most of the time.
+It can be customized using CMake Cache Variables.
+
+- The toolchain basename can be overwritten using `<ARCH>_TOOLCHAIN_BASENAME`.
+- In case the toolchain is not on the path its location get be specified with `<ARCH>_TOOLCHAIN_PREFIX`
+
+The defaults are:
+- `RISCV_TOOLCHAIN_BASENAME` = `riscv64-unknown-elf`
+
+## Adding new Target Software

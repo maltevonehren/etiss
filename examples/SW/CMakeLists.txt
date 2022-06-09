@@ -1,75 +1,37 @@
-#
-#	Copyright 2018 Infineon Technologies AG
-#
-#	This file is part of ETISS tool, see <https://github.com/tum-ei-eda/etiss>
-#
-#	The initial version of this software has been created with the funding support by the German Federal
-#	Ministry of Education and Research(BMBF) in the project EffektiV under grant 01IS13022.
-#
-#	Redistribution and use in source and binary forms, with or without modification, are permitted
-#	provided that the following conditions are met:
-#
-#	1. Redistributions of source code must retain the above copyright notice, this list of conditions and
-#	the following disclaimer.
-#
-# 	2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-#	and the following disclaimer in the documentation and / or other materials provided with the distribution.
-#
-# 	3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse
-# 	or promote products derived from this software without specific prior written permission.
-#
-#	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-#	WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-#	PARTICULAR PURPOSE ARE DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
-#	DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO,
-#	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-#	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING
-#	NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-#	POSSIBILITY OF SUCH DAMAGE.
-#
-#
-#	Author: Chair of Electronic Design Automation, TUM
-#
-#	Version 0.1
-#
+include(ExternalProject)
 
-project(SW_example)
+set(RISCV_TOOLCHAIN_PATH "${CMAKE_BINARY_DIR}/examples/SW/riscv-toolchain.cmake")
 
-
-install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/
-		DESTINATION examples/SW
-		FILES_MATCHING
-    	PATTERN "*.h"
-    	PATTERN "*.cpp"
-		PATTERN "*.c"
-		PATTERN "*.S"
-		PATTERN "*.s"
-		PATTERN "README*"
-    	PATTERN "Makefile"
-        PATTERN "*.cmake"
-		PATTERN "*.ld"
-    	PATTERN ".svn" EXCLUDE
-		PATTERN "*.in" EXCLUDE
-		PATTERN "CMakeLists.txt" EXCLUDE
-)
-
-# Setup OR1K Makefile
 configure_file(
-  or1k/Makefile.in
-  "${PROJECT_BINARY_DIR}/tobeinstalled/or1k/Makefile"
-  @ONLY
- )
-
-install(FILES "${PROJECT_BINARY_DIR}/tobeinstalled/or1k/Makefile"
-		DESTINATION examples/SW/or1k
+    riscv-toolchain.cmake
+    ${RISCV_TOOLCHAIN_PATH}
+    COPYONLY
 )
 
-install(FILES riscv/CMakeLists.txt riscv/memsegs.ini
-    DESTINATION examples/SW/riscv
+install(FILES
+    ${RISCV_TOOLCHAIN_PATH}
+    DESTINATION "lib/CMake/toolchains" COMPONENT dev
 )
-install(FILES riscv_cpp/CMakeLists.txt riscv/memsegs.ini
-    DESTINATION examples/SW/riscv_cpp
+
+SET(EXAMPLES_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/target_code)
+SET(EXAMPLES_BUILD_ALWAYS 0 CACHE BOOL "setting this variable two 1 will rebuild the target software every time. Useful when changing software in examples/SW/target_code")
+
+ExternalProject_Add(example_code_rv32gc
+    SOURCE_DIR ${EXAMPLES_SOURCE}
+    BUILD_ALWAYS ${EXAMPLES_BUILD_ALWAYS}
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/examples/SW/rv32gc
+        -DRISCV_ARCH=rv32gc
+        -DRISCV_ABI=ilp32d
+        -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_PATH}
 )
-install(FILES riscv_dhry/CMakeLists.txt
-    DESTINATION examples/SW/riscv_dhry
+
+ExternalProject_Add(example_code_rv64gc
+    SOURCE_DIR ${EXAMPLES_SOURCE}
+    BUILD_ALWAYS ${EXAMPLES_BUILD_ALWAYS}
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/examples/SW/rv64gc
+        -DRISCV_ARCH=rv64gc
+        -DRISCV_ABI=lp64d
+        -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_PATH}
 )
