@@ -1,5 +1,5 @@
 
-add_executable(testcases main.c
+add_executable(test_cases main.c
     aes/aes.c
     edge/edge.c
     endianness/endianness.c
@@ -12,4 +12,4 @@ add_executable(testcases main.c
     simple_tests/test.c
 )
 
-install(TARGETS testcases DESTINATION bin)
+install(TARGETS test_cases DESTINATION bin)
