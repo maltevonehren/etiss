@@ -4,6 +4,25 @@
 
 #include <cstdio>
 
+// constant for SYS_ELAPSED and SYS_TICKFREQ
+#define TICKER_FREQ 1000 // Hz
+
+// constants for SYS_OPEN
+const char *SYS_OPEN_MODES_STRS[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "w+b", "a", "ab", "a+", "a+b" };
+#define SYS_OPEN_MODES_TOTAL 12 // total number of modes
+#define SYS_OPEN_MODES_IN_LIMIT 4
+#define SYS_OPEN_MODES_OUT_LIMIT 8
+
+#define PS_PER_CS 10000000000 // 10 * 10^9
+
+// if var is negative set semihosting errno and return -1
+#define CHECK_NEGATIVE_RETURN(var) \
+    if ((var) < 0)                 \
+    {                              \
+        semihosting_errno = errno; \
+        return -1;                 \
+    }
+
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter);
 
@@ -49,16 +68,6 @@ bool is_std_in_out_err(FILE *file)
 {
     return file == stdin || file == stdout || file == stderr;
 }
-
-#define TICKER_FREQ 1000
-const char *mode_strs[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "w+b", "a", "ab", "a+", "a+b" };
-
-#define CHECK_NEGATIVE_RETURN(var) \
-    if ((var) < 0)                 \
-    {                              \
-        semihosting_errno = errno; \
-        return -1;                 \
-    }
 
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter)
@@ -127,14 +136,11 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: SYS_READ fd " << fd << " count " << count;
             etiss::log(etiss::VERBOSE, ss.str());
 
-            std::cout << "fd maps to " << fileno(file) << "\n";
-
             std::vector<etiss_uint8> buffer;
             buffer.resize(count);
 
             size_t num_read = fread(buffer.data(), 1, count, file);
 
-            std::cout << "after reading\n";
             buffer.resize(num_read);
             semihostWriteSystemMemory(etissSystem, address, buffer);
 
@@ -180,12 +186,6 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         etiss_uint64 path_str_addr = semihostReadStructField(etissSystem, XLEN, parameter, 0);
         etiss_uint64 mode = semihostReadStructField(etissSystem, XLEN, parameter, 1);
         etiss_uint64 path_str_len = semihostReadStructField(etissSystem, XLEN, parameter, 2);
-        if (mode > 11)
-        {
-            // invalid mode
-            semihosting_errno = EINVAL;
-            return -1;
-        }
 
         std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
@@ -193,21 +193,29 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         ss << "Semihosting: SYS_OPEN \"" << path_str << "\"";
         etiss::log(etiss::VERBOSE, ss.str());
 
+        if (mode >= SYS_OPEN_MODES_TOTAL)
+        {
+            // invalid mode
+            semihosting_errno = EINVAL;
+            return -1;
+        }
+
         FILE *file = nullptr;
-        // special file path for opening stdin, stdout and stderr
         if (path_str == ":tt")
         {
-            if (mode <= 3)
+            // special file path for opening stdin, stdout and stderr
+            // open stdin, stdout or stderr depending on mode argument
+            if (mode < SYS_OPEN_MODES_IN_LIMIT) // 0 <= mode <= 3
                 file = stdin;
-            else if (mode >= 4 && mode <= 7)
+            else if (mode < SYS_OPEN_MODES_OUT_LIMIT) // 4 <= mode <= 7
                 file = stdout;
-            else // if (mode >= 8 && mode <= 11)
+            else // 8 <= mode <= 11
                 file = stderr;
         }
         else
         {
-            file = fopen(path_str.c_str(), mode_strs[mode]);
-            if (file < 0)
+            file = fopen(path_str.c_str(), SYS_OPEN_MODES_STRS[mode]);
+            if (file == nullptr)
             {
                 semihosting_errno = errno;
                 return -1;
@@ -249,7 +257,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     case SYS_CLOCK:
     {
         // return centiseconds since some arbitrary start point
-        return cpu->cpuTime_ps / 10000000000; // 10 * 10^9
+        return cpu->cpuTime_ps / PS_PER_CS;
     }
     case SYS_TIME:
     {
