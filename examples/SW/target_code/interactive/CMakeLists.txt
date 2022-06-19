@@ -1,3 +1,3 @@
-add_executable(interactive main.c)
+add_executable_etiss(interactive main.c)
 
 install(TARGETS interactive DESTINATION bin)

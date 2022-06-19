@@ -1,0 +1,18 @@
+set(LINKER_SCRIPT @CMAKE_INSTALL_PREFIX@/cmake/etiss.ld)
+set(SPECS_FILE @CMAKE_INSTALL_PREFIX@/lib/etiss.specs)
+set(LIB_ETISS @CMAKE_INSTALL_PREFIX@/lib/lib@LIB_NAME@.a)
+
+MACRO(add_executable_etiss target)
+    set(src_files "${ARGN}")
+    
+    add_executable(${target} ${src_files})
+    
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS 
+        "${LINKER_SCRIPT};${SPECS_FILE};${LIB_ETISS}"
+    )
+    target_link_options(${target} BEFORE PRIVATE
+        -L@CMAKE_INSTALL_PREFIX@/lib
+        --specs=${SPECS_FILE}
+        -T ${LINKER_SCRIPT}
+    )
+ENDMACRO()

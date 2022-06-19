@@ -1,5 +1,3 @@
-#ifdef __riscv__
-
 #include <sys/time.h>
 #include <sys/timeb.h>
 
@@ -15,5 +13,3 @@ int _gettimeofday(struct timeval *tv, void *_)
     tv->tv_usec = 0;
     return 0;
 }
-
-#endif

@@ -1,5 +1,5 @@
 
-add_executable(dhry dhry_1.c dhry_2.c riscv_timepatch.c)
+add_executable_etiss(dhry dhry_1.c dhry_2.c)
 
 target_compile_options(dhry PRIVATE 
     -DTIME

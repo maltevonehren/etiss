@@ -1,5 +1,5 @@
 
-add_executable(test_cases main.c
+add_executable_etiss(test_cases main.c
     aes/aes.c
     edge/edge.c
     endianness/endianness.c
