@@ -3,9 +3,10 @@
 
 int main()
 {
+    printf("This programs demonstrates interactive operation using semihosting:\n"
+           "Write something to the console and see it beeing printed back.\n"
+           "Type q to exit\n");
     char buf[1024];
-
-    printf("Write something\n");
     while (1)
     {
         fgets(buf, 1024, stdin);

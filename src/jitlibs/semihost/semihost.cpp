@@ -139,7 +139,24 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             std::vector<etiss_uint8> buffer;
             buffer.resize(count);
 
-            size_t num_read = fread(buffer.data(), 1, count, file);
+            size_t num_read = 0;
+            if (file == stdin)
+            {
+                // when reading from stdin: mimic behaviour from read syscall
+                // and return on newline.
+                while (num_read < count)
+                {
+                    char c = fgetc(file);
+                    buffer[num_read] = c;
+                    num_read++;
+                    if (c == '\n')
+                        break;
+                }
+            }
+            else
+            {
+                num_read = fread(buffer.data(), 1, count, file);
+            }
 
             buffer.resize(num_read);
             semihostWriteSystemMemory(etissSystem, address, buffer);
