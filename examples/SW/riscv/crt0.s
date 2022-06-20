@@ -10,7 +10,7 @@
 
 */
 
-// modified for use in ETISS
+# modified for use in ETISS
 
 .text
 

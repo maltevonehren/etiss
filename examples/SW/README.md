@@ -25,8 +25,14 @@ For each enabled subarch, the following steps are completed:
 1.  The CMake project in the `<arch>` folder gets build first.
     It installs the file `<etiss_install_dir>/examples/SW/<subarch>/CMake/etiss.cmake`
     which contains a macro for building target code using the custom startup code and linker script.
+    It also build and installs the startup code as well as installing required files such as the linker script.
 
 2.  Afterwards the project in the `target_code` folder builds all examples using the macro from before.
+
+## Run the Examples
+
+The example binaries are located in the `<etiss_install_dir>/examples/SW/<subarch>/bin` directory.
+A configuration file for telling ETISS about the memory layout is `<etiss_install_dir>/examples/SW/<subarch>/etc/memory_layout.ini`.
 
 ## Build Custom Target Code
 
