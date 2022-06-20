@@ -11,7 +11,11 @@ echo "" > $DYN_INI
 
 # Args
 if [ "$#" -lt 1 ]; then
-    echo -e "Usage: $0 TargetELF [options] [vp VPExecutable]\n" \
+    echo -e "Usage: $0 TargetELF [options] [config IniFile] [vp VPExecutable]\n" \
+        "config:\n" \
+        "  Optional parameter to specify an additional .ini file for configuration\n" \
+        "  Multiple config files possible\n" \
+        "  (useful for providing the memsegs.ini file)\n" \
         "vp:\n" \
         "  Optional parameter to specify an executable to use as VP. Default is the bare_etiss_processor.\n" \
         "options:\n" \
@@ -30,8 +34,8 @@ TARGETSW_PATH_ELF=$1
 TARGET_ELFFILE=$(basename -- "$TARGETSW_PATH_ELF")
 TARGET_ELFDIR=$(dirname -- "$TARGETSW_PATH_ELF")
 
+EXTRA_CONFIG_OPTION=""
 VP_EXE="${ETISS_DIR}/bin/bare_etiss_processor"
-
 
 CMD_OPTIONS=""
 
@@ -68,6 +72,9 @@ do
         JIT="TCCJIT"
     elif [ "$arg" = "llvm" ]; then
         JIT="LLVMJIT"
+    elif [ "$arg" = "config" ]; then
+        EXTRA_CONFIG_OPTION="${EXTRA_CONFIG_OPTION} -i$2"
+        shift
     elif [ "$arg" = "vp" ]; then
         VP_EXE="$2"
         shift
@@ -93,14 +100,8 @@ fi
 echo -e "\n[IntConfigurations]\n" >> $DYN_INI
 echo -e "etiss.loglevel=${LOG_LEVEL}" >> $DYN_INI
 
-echo -e "simple_mem_system.memseg_origin_00=0x00000000" >> $DYN_INI
-echo -e "simple_mem_system.memseg_length_00=0x00080000" >> $DYN_INI
-
-echo -e "simple_mem_system.memseg_origin_01=0x00080000" >> $DYN_INI
-echo -e "simple_mem_system.memseg_length_01=0x00080000" >> $DYN_INI
-
 # Call
-ARGS="-i${ETISS_DIR}/examples/base.ini -i${DYN_INI} ${CMD_OPTIONS}"
+ARGS="-i${ETISS_DIR}/examples/base.ini -i${DYN_INI} ${EXTRA_CONFIG_OPTION} ${CMD_OPTIONS}"
 
 if [ "${USE_TGDB}" -eq 1 ]; then
     if [ "${DO_NOT_ATTACH}" -eq 0 ]; then

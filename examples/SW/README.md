@@ -32,7 +32,11 @@ For each enabled subarch, the following steps are completed:
 ## Run the Examples
 
 The example binaries are located in the `<etiss_install_dir>/examples/SW/<subarch>/bin` directory.
-A configuration file for telling ETISS about the memory layout is `<etiss_install_dir>/examples/SW/<subarch>/etc/memory_layout.ini`.
+A configuration file for telling ETISS about the memory layout is `<etiss_install_dir>/examples/SW/<subarch>/etc/memsegs.ini`.
+
+To run the `hello_world` example for rv32gc execute the following command inside `<etiss_install_dir>`
+
+    $ bin/run_helper.sh examples/SW/rv32gc/bin/hello_world config examples/SW/rv32gc/etc/memsegs.ini
 
 ## Build Custom Target Code
 

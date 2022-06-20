@@ -23,8 +23,8 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.specs DESTINATION lib)
 configure_file(etiss.ld.in etiss.ld @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.ld DESTINATION etc)
 
-configure_file(memory_layout.ini.in memory_layout.ini @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/memory_layout.ini DESTINATION etc)
+configure_file(memsegs.ini.in memsegs.ini @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/memsegs.ini DESTINATION etc)
 
 configure_file(etiss.cmake.in etiss.cmake @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.cmake DESTINATION CMake)
