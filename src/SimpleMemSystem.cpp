@@ -185,7 +185,7 @@ void SimpleMemSystem::load_elf()
         else if (reader.get_machine() == EM_OPENRISC)
         {
             if ((reader.get_class() == ELFCLASS32))
-                etiss::cfg().set<std::string>("arch.cpu", "OR1K");
+                etiss::cfg().set<std::string>("arch.cpu", "or1k");
             if ((reader.get_class() == ELFCLASS64))
                 etiss::log(etiss::FATALERROR, "OR1k 64 is not supported");
         }

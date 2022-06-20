@@ -1,0 +1,23 @@
+; automatically build memory configuation file
+
+[StringConfigurations]
+
+simple_mem_system.memseg_mode_00 = RX
+simple_mem_system.memseg_mode_01 = RX
+simple_mem_system.memseg_mode_02 = RW
+
+[IntConfigurations]
+
+simple_mem_system.memseg_origin_00 = 0x00000000
+simple_mem_system.memseg_length_00 = 0x00003000
+simple_mem_system.memseg_origin_01 = @MEM_ROM_ORIGIN@
+simple_mem_system.memseg_length_01 = @MEM_ROM_LENGTH@
+simple_mem_system.memseg_origin_02 = @MEM_RAM_ORIGIN@
+simple_mem_system.memseg_length_02 = @MEM_RAM_LENGTH@
+
+[Plugin Logger]
+
+plugin.logger.logaddr=@LOGGER_ADDR@
+plugin.logger.logmask=@LOGGER_ADDR@
+
+; [Plugin PrintInstruction]
