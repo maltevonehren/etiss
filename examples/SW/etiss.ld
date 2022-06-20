@@ -22,114 +22,74 @@ MEMORY
   RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 1M
 }
 
-/* Stack information variables */
-_min_stack     = 0x1000;
-_min_heap      = 0x1000;
+/* minimum sizes for heap and stack. It will be checked that they can fit on the RAM */
+__stack_size     = 0x1000;
+__heap_size      = 0x1000;
 
 
 SECTIONS
 {
-  .vectors :
-  {
-      . = ALIGN(4);
-      KEEP(*(.vectors))
-  } > ROM
+  /* ================ ROM ================ */
 
   .text : {
-      . = ALIGN(4);
-      _stext = .;
-      *(.text)
-      _etext  =  .;
-      __CTOR_LIST__ = .;
-      LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2)
-      *(.ctors)
-      LONG(0)
-      __CTOR_END__ = .;
-      __DTOR_LIST__ = .;
-      LONG((__DTOR_END__ - __DTOR_LIST__) / 4 - 2)
-      *(.dtors)
-      LONG(0)
-      __DTOR_END__ = .;
-      *(.lit)
-      *(.shdata)
-      _endtext = .;
+    *(.text .text.* )
   }  > ROM
 
-  .preinit_array     :
-  {
-    PROVIDE_HIDDEN (__preinit_array_start = .);
-    KEEP (*(.preinit_array))
-    PROVIDE_HIDDEN (__preinit_array_end = .);
-  } > ROM
-
-  .init_array     :
-  {
-    PROVIDE_HIDDEN (__init_array_start = .);
-    KEEP (*(SORT(.init_array.*)))
-    KEEP (*(.init_array ))
-    PROVIDE_HIDDEN (__init_array_end = .);
-  } > ROM
-
-  .fini_array     :
-  {
-    PROVIDE_HIDDEN (__fini_array_start = .);
-    KEEP (*(SORT(.fini_array.*)))
-    KEEP (*(.fini_array ))
-    PROVIDE_HIDDEN (__fini_array_end = .);
-  } > ROM
-
   .rodata : {
-      . = ALIGN(4);
-      *(.rodata);
-      *(.rodata.*)
-      *(.srodata)
-      *(.srodata.*)
+    *(.rodata .rodata.*)
+  } > ROM
+  .srodata : {
+    *(.srodata .srodata.*)
+  } > ROM
+  
+  .eh_frame : {
+    KEEP (*(.eh_frame))
+  } > ROM
+  
+  
+  /* ================ RAM ================ */
+
+  .init_array : {
+    PROVIDE_HIDDEN (__init_array_start = .);
+    KEEP (*(.init_array .init_array.*))
+    PROVIDE_HIDDEN (__init_array_end = .);
+  } > RAM
+  .fini_array : {
+    PROVIDE_HIDDEN (__fini_array_start = .);
+    KEEP (*(.fini_array .fini_array.*))
+    PROVIDE_HIDDEN (__fini_array_end = .);
+  } > RAM
+  
+  .gcc_except_table : {
+    *(.gcc_except_table .gcc_except_table.*)
   } > ROM
 
-  .shbss :
-  {
-      . = ALIGN(4);
-      *(.shbss)
-  } > RAM
-
+  __data_start = .;
   .data : {
-      . = ALIGN(4);
-      _data_start = .;
-      sdata  =  .;
-      _sdata  =  .;
-      *(.data);
-      *(.data.*)
-      *(.sdata2.*)
-      edata  =  .;
-      _edata  =  .;
+      *(.data .data.*)
+  } > RAM
+  __sdata_start = .;
+  .sdata : {
+      *(.sdata .sdata.*)
   } > RAM
 
-  _bss_start = .;
-  .bss :
-  {
-      . = ALIGN(4);
-      *(.bss)
-      *(.bss.*)
-      *(.sbss)
-      *(.sbss.*)
-      *(COMMON)
+  __bss_start = .;
+  .sbss : {
+      *(.sbss .sbss.*)
   } > RAM
-  _bss_end = .;
+  .bss : {
+      *(.bss .bss.*)
+  } > RAM
   _end = .;
-  _heap_start = .;
-
-  __global_pointer$ = MAX(_data_start + 0x800, _bss_end - 0x800);
-
 
   /* do not place anything after this address, because the heap starts here! */
 
-  /* ensure there is enough room for stack */
-  .stack (NOLOAD): {
-      . = ALIGN(4);
-      . = . + _min_heap;
-      . = . + _min_stack;
-      . = ALIGN(4);
-  } > RAM
+  /* point the global pointer so it can access sdata, sbss, data and bss */
+  __global_pointer$ = MIN(__sdata_start + 0x800, MAX(__data_start + 0x800, _end - 0x800));
 
-  _stack_end = ORIGIN(RAM) + LENGTH(RAM);
+  /* stack pointer starts at the top of the ram */
+  __stack = ORIGIN(RAM) + LENGTH(RAM);
+  .stack : {
+    ASSERT ((__stack > (_end + __heap_size + __stack_size)), "Error: RAM too small for heap and stack");
+  }
 }

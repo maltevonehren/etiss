@@ -28,12 +28,12 @@ _start:
   .option pop
 
   # Initialize the stack pointer
-  la      sp, _stack_end
+  la      sp, __stack
 
   # Clear the bss segment
   # memset(void* str, int c, size_t n);
-  # memset(__bss_start, 0, __bss_start - _bss_end);
-  la      a0, _bss_start
+  # memset(__bss_start, 0, __bss_start - _end);
+  la      a0, __bss_start
   li      a1, 0
   la      a2, _end
   sub     a2, a2, a0
