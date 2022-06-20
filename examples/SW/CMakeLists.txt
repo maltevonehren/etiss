@@ -9,56 +9,46 @@ set(RISCV_TOOLCHAIN_BASENAME "riscv64-unknown-elf" CACHE STRING "base name of th
 
 set(EXAMPLES_SOURCE ${CMAKE_CURRENT_LIST_DIR}/target_code)
 
-set(RISCV_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/examples/SW/riscv-toolchain.cmake")
-configure_file(
-    riscv-toolchain.cmake
-    ${RISCV_TOOLCHAIN_FILE}
-    COPYONLY
-)
-install(FILES
-    ${RISCV_TOOLCHAIN_FILE}
-    DESTINATION "lib/CMake/toolchains"
-    COMPONENT dev
-)
+set(RISCV_TOOLCHAIN_FILE "${CMAKE_CURRENT_BINARY_DIR}/riscv-toolchain.cmake")
+configure_file(riscv-toolchain.cmake ${RISCV_TOOLCHAIN_FILE} COPYONLY)
+install(FILES  ${RISCV_TOOLCHAIN_FILE} DESTINATION "lib/CMake/toolchains")
+
+# this macro build the startup code from the directory `startup_${arch}`
+# and the example code from `target_code`.
+# It will be installed into `${CMAKE_INSTALL_PREFIX}/examples/SW/${subarch}`
+MACRO (ADD_EXAMPLE_ARCH arch subarch)
+    set(CUSTOM_CMAKE_ARGS "${ARGN}")
+
+    set(CUSTOM_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/examples/SW/${subarch})
+
+    # builds the startup code, installs it and custom cmake macro
+    ExternalProject_Add(startup_code_${subarch}
+        BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
+        SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/startup_${arch}
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${CUSTOM_INSTALL_PREFIX}
+            ${CUSTOM_CMAKE_ARGS}
+    )
+
+    # builds example code using macro generated before
+    ExternalProject_Add(example_code_${subarch}
+        DEPENDS startup_code_${subarch}
+        BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
+        SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/target_code
+        CMAKE_ARGS
+            -DCMAKE_INSTALL_PREFIX=${CUSTOM_INSTALL_PREFIX}
+            ${CUSTOM_CMAKE_ARGS}
+            -DETISS_CMAKE=${CUSTOM_INSTALL_PREFIX}/cmake/etiss.cmake
+    )
+ENDMACRO()
 
 
 if (EXAMPLES_BUILD_RISCV)
-    ExternalProject_Add(startup_code_rv32gc
-        SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/startup_riscv
-        BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
-        CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/examples/SW/rv32gc
-            -DRISCV_ARCH=rv32gc
-            -DRISCV_ABI=ilp32d
-            -DRISCV_TOOLCHAIN_PREFIX=${RISCV_TOOLCHAIN_PREFIX}
-            -DRISCV_TOOLCHAIN_BASENAME=${RISCV_TOOLCHAIN_BASENAME}
-            -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_FILE}
+    set(RISCV_TOOLCHAIN_ARGS 
+        -DRISCV_TOOLCHAIN_PREFIX=${RISCV_TOOLCHAIN_PREFIX}
+        -DRISCV_TOOLCHAIN_BASENAME=${RISCV_TOOLCHAIN_BASENAME}
+        -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_FILE}
     )
-
-    ExternalProject_Add(example_code_rv32gc
-        SOURCE_DIR ${EXAMPLES_SOURCE}
-        BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
-        CMAKE_ARGS
-            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/examples/SW/rv32gc
-            -DRISCV_ARCH=rv32gc
-            -DRISCV_ABI=ilp32d
-            -DRISCV_TOOLCHAIN_PREFIX=${RISCV_TOOLCHAIN_PREFIX}
-            -DRISCV_TOOLCHAIN_BASENAME=${RISCV_TOOLCHAIN_BASENAME}
-            -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_FILE}
-            -DETISS_CMAKE=${CMAKE_INSTALL_PREFIX}/examples/SW/rv32gc/cmake/etiss.cmake
-        DEPENDS startup_code_rv32gc
-    )
-
-    # ExternalProject_Add(example_code_rv64gc
-    #     SOURCE_DIR ${EXAMPLES_SOURCE}
-    #     BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
-    #     CMAKE_ARGS
-    #         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}/examples/SW/rv64gc
-    #         -DRISCV_ARCH=rv64gc
-    #         -DRISCV_ABI=lp64d
-    #         -DRISCV_TOOLCHAIN_PREFIX=${RISCV_TOOLCHAIN_PREFIX}
-    #         -DRISCV_TOOLCHAIN_BASENAME=${RISCV_TOOLCHAIN_BASENAME}
-    #         -DCMAKE_TOOLCHAIN_FILE=${RISCV_TOOLCHAIN_FILE}
-    #         -DARCH=riscv
-    # )
+    ADD_EXAMPLE_ARCH(riscv rv32gc ${RISCV_TOOLCHAIN_ARGS} -DRISCV_ARCH=rv32gc -DRISCV_ABI=ilp32d)
+    ADD_EXAMPLE_ARCH(riscv rv64gc ${RISCV_TOOLCHAIN_ARGS} -DRISCV_ARCH=rv64gc -DRISCV_ABI=lp64d)
 endif()
