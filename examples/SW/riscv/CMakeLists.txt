@@ -10,8 +10,8 @@ install(TARGETS etiss_crt0 DESTINATION lib)
 configure_file(etiss.specs.in etiss.specs @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.specs DESTINATION lib)
 
-configure_file(../etiss.ld etiss.ld COPYONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.ld DESTINATION cmake)
+configure_file(etiss.ld etiss.ld COPYONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.ld DESTINATION CMake)
 
 configure_file(etiss.cmake.in etiss.cmake @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.cmake DESTINATION cmake)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/etiss.cmake DESTINATION CMake)

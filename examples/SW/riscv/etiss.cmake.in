@@ -2,11 +2,13 @@ set(LINKER_SCRIPT @CMAKE_INSTALL_PREFIX@/cmake/etiss.ld)
 set(SPECS_FILE @CMAKE_INSTALL_PREFIX@/lib/etiss.specs)
 set(LIB_ETISS @CMAKE_INSTALL_PREFIX@/lib/lib@LIB_NAME@.a)
 
+# this macro adds custom linker arguments to compile an executable for etiss
 MACRO(add_executable_etiss target)
     set(src_files "${ARGN}")
     
     add_executable(${target} ${src_files})
     
+    # this will cause a relinking if any of the listed files change
     set_target_properties(${target} PROPERTIES LINK_DEPENDS 
         "${LINKER_SCRIPT};${SPECS_FILE};${LIB_ETISS}"
     )
