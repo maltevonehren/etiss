@@ -6,6 +6,8 @@
 struct ETISS_CPU;
 struct ETISS_System;
 
+uint8_t etiss_semihost_enabled();
+
 int64_t etiss_semihost(ETISS_CPU *const cpu, ETISS_System *const etissSystem, void *const *const _, uint32_t XLEN,
                        uint64_t operation, uint64_t parameter);
 

@@ -7110,7 +7110,7 @@ static InstructionDefinition ebreak_(
         partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
                            std::to_string(ic.current_address_ + 4U) + ", (etiss_uint8*)&mem_val_2, 4);\n";
         partInit.code() += "etiss_uint32 post = (etiss_uint32)(mem_val_2);\n";
-        partInit.code() += "if (pre == 32509971U && ebreak == 1048691U && post == 1081102355U) {\n";
+        partInit.code() += "if (etiss_semihost_enabled() && pre == 32509971U && ebreak == 1048691U && post == 1081102355U) {\n";
         partInit.code() += "etiss_uint32 operation = *((RISCV*)cpu)->X[" + std::to_string(10U) + "];\n";
         partInit.code() += "etiss_uint32 parameter = *((RISCV*)cpu)->X[" + std::to_string(11U) + "];\n";
         partInit.code() += "*((RISCV*)cpu)->X[" + std::to_string(10U) +

@@ -28,6 +28,11 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
 
 extern "C"
 {
+    uint8_t etiss_semihost_enabled()
+    {
+        return etiss::cfg().get<bool>("arch.enable_semihosting", false);
+    }
+
     int64_t etiss_semihost(ETISS_CPU *const cpu, ETISS_System *const etissSystem, void *const *const _, uint32_t XLEN,
                            uint64_t operation, uint64_t parameter)
     {

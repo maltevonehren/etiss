@@ -1,5 +1,9 @@
 ; automatically build memory configuation file
 
+[BoolConfigurations]
+
+arch.enable_semihosting = true
+
 [StringConfigurations]
 
 simple_mem_system.memseg_mode_00 = RX
