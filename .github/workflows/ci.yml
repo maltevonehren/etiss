@@ -55,8 +55,8 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}
       run: |
-        TC_NAME="riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-${{ matrix.config.tc }}"
-        wget https://static.dev.sifive.com/dev-tools/$TC_NAME${{ matrix.config.tc-ext }}
+        TC_NAME="riscv64-unknown-elf-toolchain-10.2.0-2020.12.8-x86_64-${{ matrix.config.tc }}"
+        wget https://static.dev.sifive.com/dev-tools/freedom-tools/v2020.12/$TC_NAME${{ matrix.config.tc-ext }}
         ${{ matrix.config.unpack }} $TC_NAME${{ matrix.config.tc-ext }}
         mv $TC_NAME riscv-tc
 
