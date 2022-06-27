@@ -4,10 +4,6 @@
 
 arch.enable_semihosting = true
 
-[StringConfigurations]
-
-simple_mem_system.memseg_mode_00 = RX
-simple_mem_system.memseg_mode_01 = RW
 
 [IntConfigurations]
 

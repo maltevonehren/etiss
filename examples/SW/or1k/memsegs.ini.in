@@ -1,11 +1,5 @@
 ; automatically build memory configuation file
 
-[StringConfigurations]
-
-simple_mem_system.memseg_mode_00 = RX
-simple_mem_system.memseg_mode_01 = RX
-simple_mem_system.memseg_mode_02 = RW
-
 [IntConfigurations]
 
 simple_mem_system.memseg_origin_00 = 0x00000000
