@@ -1,15 +1,17 @@
 #include <sys/time.h>
 #include <sys/timeb.h>
 
-extern int _ftime(struct timeb *tp);
+#include "csr.h"
 
-// get seconds since epoch using semihosting call from libgloss
+#define US_PER_S 1000000
+
+// get seconds since epoch using time CSR
+// ETISS RISC-V time CSR contains unix time in micro seconds (us)
 int _gettimeofday(struct timeval *tv, void *_)
 {
-    struct timeb tp;
-    _ftime(&tp);
+    uint64_t us = rdtime64();
 
-    tv->tv_sec = tp.time;
-    tv->tv_usec = 0; // semihosting call only returns whole seconds
+    tv->tv_sec = us / US_PER_S;
+    tv->tv_usec = us % US_PER_S;
     return 0;
 }

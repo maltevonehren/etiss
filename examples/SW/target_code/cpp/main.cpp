@@ -38,8 +38,7 @@ int main()
     using Clock = std::chrono::high_resolution_clock;
     auto t = Clock::now();
 
-    // Fails with illegal instruction because newlib was compiled with hardfloats.
-    // printf("hello world %.2f\n", 3.1415);
+    printf("hello world %.2f\n", 3.1415);
 
     printf("===== hello world %i %c %08X =====\n", 123, 123, 123);
 
@@ -54,7 +53,6 @@ int main()
 
     try
     {
-        // Fails because of hardfloats too at: _Unwind_RaiseException+82
         // throw 5;
     }
     catch (int i)
@@ -65,8 +63,11 @@ int main()
     static int threadsafe_init = 7;
 
     auto t2 = Clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(t - Clock::now());
-    printf("time elapsed: %llu ns\n", diff.count());
+    {
+        using namespace std::chrono;
+        auto diff = t2 - t;
+        std::cout << "time elapsed: " << (duration_cast<milliseconds>(diff)).count() << "ms\n";
+    }
 
     std::atomic_int ai;
     ai = 5;
