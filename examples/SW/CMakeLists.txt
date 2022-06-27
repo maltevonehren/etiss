@@ -46,6 +46,7 @@ MACRO (BUILD_FOR_SUBARCH arch subarch)
     ExternalProject_Add(startup_code_${subarch}
         BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${arch}
+        CMAKE_GENERATOR "Unix Makefiles"
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX=${CUSTOM_INSTALL_PREFIX}
             ${CUSTOM_CMAKE_ARGS}
@@ -56,6 +57,7 @@ MACRO (BUILD_FOR_SUBARCH arch subarch)
         DEPENDS startup_code_${subarch}
         BUILD_ALWAYS ${EXAMPLES_ALWAYS_BUILD}
         SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/target_code
+        CMAKE_GENERATOR "Unix Makefiles"
         CMAKE_ARGS
             -DCMAKE_INSTALL_PREFIX=${CUSTOM_INSTALL_PREFIX}
             ${CUSTOM_CMAKE_ARGS}
