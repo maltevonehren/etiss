@@ -14,7 +14,7 @@ set(MIN_HEAP_SIZE 0x1000)
 
 set(LIB_NAME etiss_crt0)
 
-add_library(etiss_crt0 STATIC crt0.s fixes.c trap_handler.c)
+add_library(etiss_crt0 STATIC crt0.S fixes.c trap_handler.c)
 install(TARGETS etiss_crt0 DESTINATION lib)
 
 configure_file(etiss.specs.in etiss.specs @ONLY)

@@ -19,7 +19,7 @@ SEARCH_DIR(.)
 MEMORY
 {
   ROM  (rx)  : ORIGIN = @MEM_ROM_ORIGIN@, LENGTH = @MEM_ROM_LENGTH@
-  RAM  (rwx) : ORIGIN = @MEM_RAM_ORIGIN@, LENGTH = @MEM_RAM_LENGTH@
+  RAM  (rw) : ORIGIN = @MEM_RAM_ORIGIN@, LENGTH = @MEM_RAM_LENGTH@
 }
 
 /* minimum sizes for heap and stack. It will be checked that they can fit on the RAM */

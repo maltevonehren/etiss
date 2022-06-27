@@ -10,6 +10,6 @@ int _gettimeofday(struct timeval *tv, void *_)
     _ftime(&tp);
 
     tv->tv_sec = tp.time;
-    tv->tv_usec = 0;
+    tv->tv_usec = 0; // semihosting call only returns whole seconds
     return 0;
 }
