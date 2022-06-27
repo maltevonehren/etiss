@@ -68,7 +68,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: |
         export LLVM_DIR=${{runner.workspace}}/llvm-lib
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=../install -DEXAMPLES_BUILD_RISCV=ON -DRISCV_TOOLCHAIN_PREFIX=${{runner.workspace}}/riscv-tc
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=../install -DEXAMPLES_BUILD_RISCV=ON -DRISCV_TOOLCHAIN_PREFIX=${{runner.workspace}}/riscv-tc/bin
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
