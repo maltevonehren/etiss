@@ -10,9 +10,9 @@ jobs:
     strategy:
       matrix:
         config:
-          - {name: "Linux", os: ubuntu-latest, cmakegen: "", llvm: "linux-gnu-ubuntu-20.04", llvm-ext: ".tar.xz", tc: "linux-ubuntu14", tc-ext: ".tar.gz", unpack: "tar xf"}
-          - {name: "Windows", os: windows-latest, cmakegen: "-G \"Unix Makefiles\" -DCMAKE_MAKE_PROGRAM=make", llvm: "", llvm-ext: "", tc: "w64-mingw32", tc-ext: ".zip", unpack: "unzip"}
-          - {name: "Mac", os: macos-10.15, cmakegen: "", llvm: "apple-darwin", llvm-ext: ".tar.xz", tc: "apple-darwin", tc-ext: ".tar.gz", unpack: "tar xf"}
+          - { name: "Linux"  , os: ubuntu-latest , llvm: "linux-gnu-ubuntu-20.04", llvm-ext: ".tar.xz", tc: "linux-ubuntu14", tc-ext: ".tar.gz", unpack: "tar xf" }
+          - { name: "Windows", os: windows-latest, llvm: ""                      , llvm-ext: ""       , tc: "w64-mingw32"   , tc-ext: ".zip"   , unpack: "unzip"  }
+          - { name: "Mac"    , os: macos-10.15   , llvm: "apple-darwin"          , llvm-ext: ".tar.xz", tc: "apple-darwin"  , tc-ext: ".tar.gz", unpack: "tar xf" }
 
     runs-on: ${{ matrix.config.os }}
     name: ${{ matrix.config.name }}_build
@@ -68,7 +68,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: |
         export LLVM_DIR=${{runner.workspace}}/llvm-lib
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=../install -DEXAMPLES_BUILD_RISCV=ON -DRISCV_TOOLCHAIN_PREFIX=${{runner.workspace}}/riscv-tc
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_INSTALL_PREFIX=../install -DEXAMPLES_BUILD_RISCV=ON -DRISCV_TOOLCHAIN_PREFIX="${{runner.workspace}}/riscv-tc"
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -93,9 +93,9 @@ jobs:
     strategy:
       matrix:
         config:
-          - {name: "Linux", os: ubuntu-20.04, cmakegen: "", llvm: "linux-gnu-ubuntu-20.04", llvm-ext: ".tar.xz", tc: "linux-ubuntu14", tc-ext: ".tar.gz", unpack: "tar xf"}
-          - {name: "Windows", os: windows-latest, cmakegen: "-G \"MinGW Makefiles\"", llvm: "", llvm-ext: "", tc: "w64-mingw32", tc-ext: ".zip", unpack: "unzip"}
-          - {name: "Mac", os: macos-10.15, cmakegen: "", llvm: "apple-darwin", llvm-ext: ".tar.xz", tc: "apple-darwin", tc-ext: ".tar.gz", unpack: "tar xf"}
+          - { name: "Linux"  , os: ubuntu-20.04   }
+          - { name: "Windows", os: windows-latest }
+          - { name: "Mac"    , os: macos-10.15    }
 
     needs: build
     runs-on: ${{ matrix.config.os }}
