@@ -95,7 +95,7 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: "Linux"  , os: ubuntu-20.04   }
+          - { name: "Linux"  , os: ubuntu-latest  }
           - { name: "Windows", os: windows-latest }
           - { name: "Mac"    , os: macos-10.15    }
 
@@ -116,7 +116,6 @@ jobs:
 
     - name: Test (Linux/Mac)
       working-directory: ${{runner.workspace}}/install
-      if: matrix.config.name == 'Linux'
       shell: bash
       run: |
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini      
@@ -127,20 +126,6 @@ jobs:
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  llvm
         bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini      
         bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini      
-
-    # - name: Test (Windows)
-    #   working-directory: ${{runner.workspace}}/install/examples/bare_etiss_processor/build
-    #   if: matrix.config.name == 'Windows'
-    #   shell: bash
-    #   run: |
-    #     PATH=$PATH:/d/a/etiss/install/lib/
-    #     cd $BUILD_TYPE
-    #     ./main.exe --vp.elf_file=../../../SW/riscv/build/riscv_example.elf --jit.type=TCCJIT --etiss.loglevel=4 -i../../../SW/riscv/memsegs.ini -pLogger
-    #     ./main.exe --vp.elf_file=../../../SW/riscv/build/riscv_example.elf --jit.type=LLVMJIT --etiss.loglevel=4 -i../../../SW/riscv/memsegs.ini -pLogger
-    #     ./main.exe --vp.elf_file=../../../SW/riscv_cpp/build/riscv_example.elf --jit.type=TCCJIT --etiss.loglevel=4 -i../../../SW/riscv_cpp/memsegs.ini -pLogger
-    #     ./main.exe --vp.elf_file=../../../SW/riscv_cpp/build/riscv_example.elf --jit.type=LLVMJIT --etiss.loglevel=4 -i../../../SW/riscv_cpp/memsegs.ini -pLogger
-    #     ./main.exe --vp.elf_file=../../../SW/riscv/build64/riscv_example.elf --jit.type=TCCJIT --etiss.loglevel=4 -i../../../SW/riscv/memsegs.ini -pLogger
-    #     ./main.exe --vp.elf_file=../../../SW/riscv_cpp/build64/riscv_example.elf --jit.type=TCCJIT --etiss.loglevel=4 -i../../../SW/riscv_cpp/memsegs.ini -pLogger
 
   benchmark:
     strategy:
