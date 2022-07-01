@@ -120,7 +120,7 @@ jobs:
       run: |
         # run tests
         # add lib folder to path so ETISS shared library is found on windows
-        export PATH=$PATH:`pwd`/install/lib
+        export PATH=$PATH:`pwd`/lib
 
         echo $PATH
         
