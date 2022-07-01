@@ -118,10 +118,9 @@ jobs:
       working-directory: ${{runner.workspace}}/install
       shell: bash
       run: |
+        # run tests
         # add lib folder to path so ETISS shared library is found on windows
-        WORKSPACE="${{runner.workspace}}"
-        WORKSPACE_U=${WORKSPACE//\\//}
-        export PATH=$PATH:$WORKSPACE_U/install/lib
+        export PATH=$PATH:`pwd`/install/lib
         
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini      
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  gcc 
