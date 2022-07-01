@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         config:
-          # - { name: "Linux"  , os: ubuntu-latest , llvm: "linux-gnu-ubuntu-20.04", llvm-ext: ".tar.xz", tc: "linux-ubuntu14", tc-ext: ".tar.gz", unpack: "tar xf" }
+          - { name: "Linux"  , os: ubuntu-latest , llvm: "linux-gnu-ubuntu-20.04", llvm-ext: ".tar.xz", tc: "linux-ubuntu14", tc-ext: ".tar.gz", unpack: "tar xf" }
           - { name: "Windows", os: windows-latest, llvm: ""                      , llvm-ext: ""       , tc: "w64-mingw32"   , tc-ext: ".zip"   , unpack: "unzip"  }
           # - { name: "Mac"    , os: macos-10.15   , llvm: "apple-darwin"          , llvm-ext: ".tar.xz", tc: "apple-darwin"  , tc-ext: ".tar.gz", unpack: "tar xf" }
 
@@ -95,9 +95,9 @@ jobs:
     strategy:
       matrix:
         config:
-          # - { name: "Linux"  , os: ubuntu-latest  }
-          - { name: "Windows", os: windows-latest }
-          # - { name: "Mac"    , os: macos-10.15    }
+          - { name: "Linux"  , os: ubuntu-latest , has_gcc: true }
+          - { name: "Windows", os: windows-latest, has_gcc: false }
+          # - { name: "Mac"    , os: macos-10.15   , has_gcc: true }
 
     needs: build
     runs-on: ${{ matrix.config.os }}
@@ -119,19 +119,24 @@ jobs:
       shell: bash
       run: |
         # run tests
+
         # add lib folder to path so ETISS shared library is found on windows
         export PATH=$PATH:`pwd`/lib
-
-        echo $PATH
         
-        bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini      
-        bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  gcc 
+        bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  tcc
+        bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  tcc
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  llvm
-        bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini      
-        bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  gcc 
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  llvm
-        bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini      
-        bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini      
+
+        # gcc is not available on windows
+        if ${{matrix.config.has_gcc}}; then
+        bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  gcc
+        bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  gcc
+        fi
+
+        # run tests on 64-bit RISC-V as well
+        bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini  tcc
+        bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini  tcc
 
   benchmark:
     strategy:
