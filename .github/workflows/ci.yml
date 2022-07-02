@@ -32,9 +32,7 @@ jobs:
       run: |
         choco install boost-msvc-14.2
         choco install wget unzip
-        choco install llvm --version=11.0.0 --allow-downgrade
         choco install make
-        ln -s "/c/Program Files/LLVM" llvm-lib
 
     - name: Requirements (Mac)
       if: matrix.config.name == 'Mac'
@@ -95,9 +93,9 @@ jobs:
     strategy:
       matrix:
         config:
-          - { name: "Linux"  , os: ubuntu-latest , has_gcc: true }
-          - { name: "Windows", os: windows-latest, has_gcc: false }
-          # - { name: "Mac"    , os: macos-10.15   , has_gcc: true }
+          - { name: "Linux"  , os: ubuntu-latest , has_gcc: true , has_llvm: true  }
+          - { name: "Windows", os: windows-latest, has_gcc: false, has_llvm: false }
+          # - { name: "Mac"    , os: macos-10.15   , has_gcc: true , has_llvm: true }
 
     needs: build
     runs-on: ${{ matrix.config.os }}
@@ -120,23 +118,25 @@ jobs:
       run: |
         # run tests
 
-        # add lib folder to path so ETISS shared library is found on windows
+        # add install/lib to path so ETISS.dll is found on windows
         export PATH=$PATH:`pwd`/lib
         
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  tcc
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  tcc
+
+        if ${{matrix.config.has_llvm}}; then # find package does not find llvm on windows
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  llvm
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  llvm
+        fi
 
-        # gcc is not available on windows
-        if ${{matrix.config.has_gcc}}; then
+        if ${{matrix.config.has_gcc}}; then # gcc is not available on windows
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  gcc
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  gcc
         fi
 
         # run tests on 64-bit RISC-V as well
-        bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini  tcc
-        bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini  tcc
+        bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini
+        bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini
 
   benchmark:
     strategy:
