@@ -23,6 +23,8 @@ const char *SYS_OPEN_MODES_STRS[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "
         return -1;                 \
     }
 
+#define FIELD(fieldNo) semihostReadStructField(etissSystem, XLEN / 8, parameter, fieldNo);
+
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter);
 
@@ -40,13 +42,36 @@ extern "C"
     }
 }
 
-etiss_uint64 semihostReadStructField(ETISS_System *etissSystem, etiss_uint32 XLEN, etiss_uint64 address, int fieldNo)
+etiss_uint64 semihostReadStructField(ETISS_System *etissSystem, etiss_uint32 numBytes, etiss_uint64 address,
+                                     int fieldNo)
 {
-    int width = XLEN / 8;
-    etiss_uint64 field = 0;
-    etissSystem->dbg_read(etissSystem->handle, address + width * fieldNo, (etiss_uint8 *)&field,
-                          width); // TODO throw error
-    return field;
+    if (numBytes == 8)
+    {
+        etiss_uint64 field = 0;
+        etissSystem->dbg_read(etissSystem->handle, address + 8 * fieldNo, (etiss_uint8 *)&field, 8);
+        return field;
+    }
+    else if (numBytes == 4)
+    {
+        etiss_uint32 field = 0;
+        etissSystem->dbg_read(etissSystem->handle, address + 4 * fieldNo, (etiss_uint8 *)&field, 4);
+        return field;
+    }
+    else if (numBytes == 2)
+    {
+        etiss_uint16 field = 0;
+        etissSystem->dbg_read(etissSystem->handle, address + 2 * fieldNo, (etiss_uint8 *)&field, 2);
+        return field;
+    }
+    else if (numBytes == 1)
+    {
+        etiss_uint8 field = 0;
+        etissSystem->dbg_read(etissSystem->handle, address + 1 * fieldNo, &field, 1);
+        return field;
+    }
+
+    etiss::log(etiss::ERROR, "semihostReadStructField called with numBytes != 1, 2, 4 or 8");
+    return 0;
 }
 
 std::vector<etiss_uint8> semihostReadSystemMemory(ETISS_System *etissSystem, etiss_uint64 address, etiss_uint64 length)
@@ -69,22 +94,38 @@ std::string semihostReadString(ETISS_System *etissSystem, etiss_uint64 address, 
     return str;
 }
 
+void semihostWriteString(ETISS_System *etissSystem, etiss_uint64 address, std::string str)
+{
+    etissSystem->dbg_write(etissSystem->handle, address, (etiss_uint8 *)str.c_str(), str.length() + 1);
+}
+
 bool is_std_in_out_err(FILE *file)
 {
     return file == stdin || file == stdout || file == stderr;
 }
 
+/// Executes the semihosting call based on the operation number.
+/// For description of all semihosting calls see:
+/// https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter)
 {
+    // static variables to keep track of semihosting state
 
+    /// openFiles maps target file descriptors (uint) to host
+    /// file descriptors (FILE *).
     static std::map<etiss_uint64, FILE *> openFiles;
-    static etiss_uint64 nextFd;
+    /// next target file descriptor to be allocated.
+    /// starts at 0 for first target fd (stdin)
+    static etiss_uint64 nextFd = 0;
+    /// Local errno variable to set in semihosting functions
+    /// and return using SYS_ERRNO
     static etiss_int64 semihosting_errno;
 
     switch (operationNumber)
     {
-    // all operations that have the file descriptor as their first argument
+    // share code between all operations that have the
+    // file descriptor as their first argument
     case SYS_CLOSE:
     case SYS_WRITE:
     case SYS_READ:
@@ -92,13 +133,13 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     case SYS_SEEK:
     case SYS_FLEN:
     {
-        etiss_uint64 fd = semihostReadStructField(etissSystem, XLEN, parameter, 0);
+        etiss_uint64 fd = FIELD(0);
         if (openFiles.count(fd) == 0)
         {
             std::stringstream ss;
             ss << "Semihosting: invalid file descriptor " << fd << " for semihosting call 0x" << std::hex
                << std::setfill('0') << std::setw(2) << operationNumber;
-            etiss::log(etiss::VERBOSE, ss.str());
+            etiss::log(etiss::INFO, ss.str());
             semihosting_errno = EBADF;
             return -1;
         }
@@ -120,8 +161,8 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         }
         case SYS_WRITE:
         {
-            etiss_uint64 address = semihostReadStructField(etissSystem, XLEN, parameter, 1);
-            etiss_uint64 count = semihostReadStructField(etissSystem, XLEN, parameter, 2);
+            etiss_uint64 address = FIELD(1);
+            etiss_uint64 count = FIELD(2);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_WRITE fd " << fd;
@@ -134,8 +175,8 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         }
         case SYS_READ:
         {
-            etiss_uint64 address = semihostReadStructField(etissSystem, XLEN, parameter, 1);
-            etiss_uint64 count = semihostReadStructField(etissSystem, XLEN, parameter, 2);
+            etiss_uint64 address = FIELD(1);
+            etiss_uint64 count = FIELD(2);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_READ fd " << fd << " count " << count;
@@ -178,7 +219,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         }
         case SYS_SEEK:
         {
-            etiss_uint64 position = semihostReadStructField(etissSystem, XLEN, parameter, 1);
+            etiss_uint64 position = FIELD(1);
 
             std::stringstream ss;
             ss << "Semihosting: SYS_SEEK fd " << fd << ": " << position;
@@ -205,9 +246,9 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     }
     case SYS_OPEN:
     {
-        etiss_uint64 path_str_addr = semihostReadStructField(etissSystem, XLEN, parameter, 0);
-        etiss_uint64 mode = semihostReadStructField(etissSystem, XLEN, parameter, 1);
-        etiss_uint64 path_str_len = semihostReadStructField(etissSystem, XLEN, parameter, 2);
+        etiss_uint64 path_str_addr = FIELD(0);
+        etiss_uint64 mode = FIELD(1);
+        etiss_uint64 path_str_len = FIELD(2);
 
         std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
@@ -250,18 +291,55 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     }
     case SYS_WRITEC:
     {
-        etiss_uint64 character = semihostReadStructField(etissSystem, XLEN, parameter, 0);
+        etiss_uint64 character = semihostReadStructField(etissSystem, 1, parameter, 0);
         putchar(character);
+        return 0;
+    }
+    case SYS_WRITE0:
+    {
+        etiss_uint64 address = parameter;
+        while (1)
+        {
+            etiss_uint64 character = semihostReadStructField(etissSystem, 1, address, 0);
+            if (character == 0)
+                break;
+            putchar(character);
+            address++;
+        }
         return 0;
     }
     case SYS_READC:
     {
         return getchar();
     }
+    case SYS_ISERROR:
+    {
+        etiss_uint64 value = FIELD(0);
+        return value != 0;
+    }
+    case SYS_TMPNAM:
+    {
+        etiss_uint64 buffer_address = FIELD(0);
+        etiss_uint64 identifier = FIELD(1);
+        etiss_uint64 buffer_len = FIELD(2);
+
+        if (identifier > 255)
+            return -1;
+
+        std::stringstream ss;
+        ss << "etiss-tmp/file-" << std::setfill('0') << std::setw(3) << identifier;
+        std::string filename = ss.str();
+
+        if (buffer_len <= filename.length() + 1)
+            return -1;
+
+        semihostWriteString(etissSystem, buffer_address, filename);
+        return 0;
+    }
     case SYS_REMOVE:
     {
-        etiss_uint64 path_str_addr = semihostReadStructField(etissSystem, XLEN, parameter, 0);
-        etiss_uint64 path_str_len = semihostReadStructField(etissSystem, XLEN, parameter, 1);
+        etiss_uint64 path_str_addr = FIELD(0);
+        etiss_uint64 path_str_len = FIELD(1);
 
         std::string path_str = semihostReadString(etissSystem, path_str_addr, path_str_len);
 
@@ -275,6 +353,22 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             return -1;
         }
         return 0;
+    }
+    case SYS_RENAME:
+    {
+        etiss_uint64 old_str_addr = FIELD(0);
+        etiss_uint64 old_str_len = FIELD(1);
+        etiss_uint64 new_str_addr = FIELD(2);
+        etiss_uint64 new_str_len = FIELD(3);
+
+        std::string old_str = semihostReadString(etissSystem, old_str_addr, old_str_len);
+        std::string new_str = semihostReadString(etissSystem, new_str_addr, new_str_len);
+
+        std::stringstream ss;
+        ss << "Semihosting: SYS_RENAME \"" << old_str << "\" to \"" << new_str << "\"";
+        etiss::log(etiss::VERBOSE, ss.str());
+
+        return rename(old_str.c_str(), new_str.c_str());
     }
     case SYS_CLOCK:
     {
@@ -309,10 +403,6 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     {
         return TICKER_FREQ;
     }
-    case SYS_WRITE0:
-    case SYS_ISERROR:
-    case SYS_TMPNAM:
-    case SYS_RENAME:
     case SYS_SYSTEM:
     case SYS_GET_CMDLINE:
     case SYS_HEAPINFO:
