@@ -9111,7 +9111,7 @@ static InstructionDefinition mulh_rd_rs1_rs2(
 #endif
                           "*((RISCV64*)cpu)->X[" +
                           toString(rd) +
-                          "] = (etiss_uint64)(res >> 64);\n"
+                          "] = (etiss_uint64)(0);\n"
 #if RISCV64_DEBUG_CALL
                           "printf(\"*((RISCV64*)cpu)->X[" +
                           toString(rd) + "] = %#lx\\n\",*((RISCV64*)cpu)->X[" + toString(rd) +
@@ -9187,7 +9187,7 @@ static InstructionDefinition mulhsu_rd_rs1_rs2(
 #endif
                           "*((RISCV64*)cpu)->X[" +
                           toString(rd) +
-                          "] = (etiss_uint64)(res >> 64);\n"
+                          "] = (etiss_uint64)(0);\n"
 #if RISCV64_DEBUG_CALL
                           "printf(\"*((RISCV64*)cpu)->X[" +
                           toString(rd) + "] = %#lx\\n\",*((RISCV64*)cpu)->X[" + toString(rd) +
@@ -9256,7 +9256,7 @@ static InstructionDefinition mulhu_rd_rs1_rs2(
 #endif
                           "*((RISCV64*)cpu)->X[" +
                           toString(rd) +
-                          "] = (etiss_uint64)(res >> 64);\n"
+                          "] = (etiss_uint64)(0);\n"
 #if RISCV64_DEBUG_CALL
                           "printf(\"*((RISCV64*)cpu)->X[" +
                           toString(rd) + "] = %#lx\\n\",*((RISCV64*)cpu)->X[" + toString(rd) +
