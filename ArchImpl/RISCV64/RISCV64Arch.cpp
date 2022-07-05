@@ -8427,12 +8427,16 @@ static InstructionDefinition ebreak_(
         partInit.code() += "cpu->instructionPointer = " + std::to_string(ic.current_address_ + 4U) + ";\n";
         partInit.code() += "if (etiss_semihost_enabled()) {\n";
         partInit.code() += "etiss_uint32 mem_val_0;\n";
-        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " + std::to_string(ic.current_address_ - 4U) + ", (etiss_uint8*)&mem_val_0, 4);\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_ - 4U) + ", (etiss_uint8*)&mem_val_0, 4);\n";
         partInit.code() += "etiss_uint32 mem_val_1;\n";
-        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " + std::to_string(ic.current_address_ + 0U) + ", (etiss_uint8*)&mem_val_1, 4);\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_ + 0U) + ", (etiss_uint8*)&mem_val_1, 4);\n";
         partInit.code() += "etiss_uint32 mem_val_2;\n";
-        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " + std::to_string(ic.current_address_ + 4U) + ", (etiss_uint8*)&mem_val_2, 4);\n";
-        partInit.code() += "if ((etiss_uint32)(mem_val_0) == 32509971U && (etiss_uint32)(mem_val_1) == 1048691U && (etiss_uint32)(mem_val_2) == 1081102355U) {\n";
+        partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " +
+                           std::to_string(ic.current_address_ + 4U) + ", (etiss_uint8*)&mem_val_2, 4);\n";
+        partInit.code() += "if ((etiss_uint32)(mem_val_0) == 32509971U && (etiss_uint32)(mem_val_1) == 1048691U && "
+                           "(etiss_uint32)(mem_val_2) == 1081102355U) {\n";
         partInit.code() += "etiss_uint32 operation = *((RISCV64*)cpu)->X[" + std::to_string(10U) + "];\n";
         partInit.code() += "etiss_uint32 parameter = *((RISCV64*)cpu)->X[" + std::to_string(11U) + "];\n";
         partInit.code() += "*((RISCV64*)cpu)->X[" + std::to_string(10U) +
@@ -8446,6 +8450,7 @@ static InstructionDefinition ebreak_(
         partInit.code() += " else {\n";
         partInit.code() += "exception = ETISS_RETURNCODE_BREAKPOINT;\n";
         partInit.code() += "}\n";
+        partInit.code() += "if (cpu->return_pending) return cpu->exception;\n";
         partInit.code() += "return exception;\n";
         // -----------------------------------------------------------------------------
 

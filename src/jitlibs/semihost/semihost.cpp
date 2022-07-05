@@ -391,9 +391,9 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     case SYS_EXIT:
     {
         etiss::log(etiss::VERBOSE, "Semihosting: SYS_EXIT -> exit simulator");
-        // TODO
-        etiss::shutdown();
-        exit(0);
+
+        cpu->exception = ETISS_RETURNCODE_CPUFINISHED;
+        cpu->return_pending = true;
     }
     case SYS_ELAPSED:
     {
