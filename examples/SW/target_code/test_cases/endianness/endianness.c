@@ -44,6 +44,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+static union
+{
+    uint32_t as_ui;
+    struct
+    {
+        uint16_t low_hw;
+        uint16_t high_hw;
+    } as_hwds;
+    struct
+    {
+        uint8_t LSB;
+        uint8_t SLSB;
+        uint8_t SMSB;
+        uint8_t MSB;
+    } as_bytes;
+} test_union;
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 static union
 {
     uint32_t as_ui;
@@ -60,24 +78,28 @@ static union
         uint8_t LSB;
     } as_bytes;
 } test_union;
+#else
+#error __BYTE_ORDER__ macro is not defined
+#endif
 
 void endianness_test()
 {
     printf("\n\n=========    Endianness test    ============\n");
     printf("\nWrite tests:\n");
+
     test_union.as_ui = 0x11223344;
-    printf("   Writing 0x11223344 as 32-bit; reading 0x%08x\n", test_union.as_ui);
+    printf("   Writing 0x11223344 as 32-bit, reading 0x%08X\n", test_union.as_ui);
 
     printf("\n  16 Bit:\n");
 
     test_union.as_hwds.high_hw = 0xAABB;
-    printf("    Wrote 0xAABB to high halfword (4-byte aligned), reading 0x%08x (should be 0xAABB3344)\n",
+    printf("    Wrote 0xAABB to high halfword (4-byte aligned), reading 0x%08X (should be 0xAABB3344)\n",
            test_union.as_ui);
     if (test_union.as_ui != 0xAABB3344)
         printf("\n ERROR in endianess behaviour (write high half word) \n\n");
 
     test_union.as_hwds.low_hw = 0xCCDD;
-    printf("    Wrote 0xCCDD to low halfword (2-byte aligned), reading 0x%08x (should be 0xAABBCCDD)\n",
+    printf("    Wrote 0xCCDD to low halfword (2-byte aligned), reading 0x%08X (should be 0xAABBCCDD)\n",
            test_union.as_ui);
     if (test_union.as_ui != 0xAABBCCDD)
         printf("\n ERROR in endianess behaviour (write low half word)\n\n");
@@ -85,30 +107,22 @@ void endianness_test()
     printf("  8 Bit:\n");
 
     test_union.as_bytes.MSB = 0x11;
-    printf("    Wrote 0x11 to MSB (4-byte aligned), reading 0x");
-    printf("%08x", test_union.as_ui);
-    printf(" (should be 0x11BBCCDD)\n");
+    printf("    Wrote 0x11 to MSB (4-byte aligned), reading 0x%08X (should be 0x11BBCCDD)\n", test_union.as_ui);
     if (test_union.as_ui != 0x11BBCCDD)
         printf("\n ERROR in endianess behaviour (write MSB)\n\n");
 
     test_union.as_bytes.SMSB = 0x22;
-    printf("    Wrote 0x22 to Second-MSB (byte aligned), reading 0x");
-    printf("%08x", test_union.as_ui);
-    printf(" (should be 0x1122CCDD)\n");
+    printf("    Wrote 0x22 to Second-MSB (byte aligned), reading 0x%08X (should be 0x1122CCDD)\n", test_union.as_ui);
     if (test_union.as_ui != 0x1122CCDD)
         printf("\n ERROR in endianess behaviour (write 2MSB)\n\n");
 
     test_union.as_bytes.SLSB = 0x33;
-    printf("    Wrote 0x33 to Second-LSB (2-byte aligned), reading 0x");
-    printf("%08x", test_union.as_ui);
-    printf(" (should be 0x112233DD)\n");
+    printf("    Wrote 0x33 to Second-LSB (2-byte aligned), reading 0x%08X (should be 0x112233DD)\n", test_union.as_ui);
     if (test_union.as_ui != 0x112233DD)
         printf("\n ERROR in endianess behaviour (write 2LSB)\n\n");
 
     test_union.as_bytes.LSB = 0x44;
-    printf("    Wrote 0x44 to LSB (byte aligned), reading 0x");
-    printf("%08x", test_union.as_ui);
-    printf(" (should be 0x11223344)\n");
+    printf("    Wrote 0x44 to LSB (byte aligned), reading 0x%08X (should be 0x11223344)\n", test_union.as_ui);
     if (test_union.as_ui != 0x11223344)
         printf("\n ERROR in endianess behaviour (write LSB)\n\n");
 
@@ -116,23 +130,23 @@ void endianness_test()
     printf("  16 Bit:\n");
 
     printf("    Reading high halfword: ");
-    printf("%04x", test_union.as_hwds.high_hw);
+    printf("0x%04X", test_union.as_hwds.high_hw);
 
     printf("\n    Reading low halfword: ");
-    printf("%04x", test_union.as_hwds.low_hw);
+    printf("0x%04X", test_union.as_hwds.low_hw);
 
     printf("\n\n  8 Bit:");
     printf("\n    Reading MSB: ");
-    printf("%02x", test_union.as_bytes.MSB);
+    printf("0x%02X", test_union.as_bytes.MSB);
 
     printf("\n    Reading Second-MSB: ");
-    printf("%02x", test_union.as_bytes.SMSB);
+    printf("0x%02X", test_union.as_bytes.SMSB);
 
     printf("\n    Reading Second-LSB: ");
-    printf("%02x", test_union.as_bytes.SLSB);
+    printf("0x%02X", test_union.as_bytes.SLSB);
 
     printf("\n    Reading LSB: ");
-    printf("%02x", test_union.as_bytes.LSB);
+    printf("0x%02X", test_union.as_bytes.LSB);
 
     printf("\n\n");
 }
