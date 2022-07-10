@@ -118,7 +118,7 @@ jobs:
       run: |
         # run tests
 
-        # add install/lib to path so ETISS.dll is found on windows
+        # add install/lib to path, so ETISS.dll is found on windows
         export PATH=$PATH:`pwd`/lib
         
         bin/run_helper.sh  examples/SW/rv32gc/bin/test_cases   config examples/SW/rv32gc/etc/memsegs.ini  tcc
