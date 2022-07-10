@@ -1,15 +1,40 @@
 
 # Target Software
 
-This folder contains a standalone CMake project that can get build for different (sub)architectures.
+This folder contains a standalone CMake project that can get build for different 
+(sub)architectures.
 
-- The `examples` folder contains different example programs (see its [README](examples/README.md) for explanations on the different programs)
-- The `startup_<arch>` folders contain custom startup code for the respective architectures. These can for example include setting the stackpointer or initializing a trap vector.
+# Example programs
 
-The `CMakeLists.txt` contain the macro `add_executable_etiss` for building an executable using the custom linker script and custom startup code.
+The following binaries get generated
 
-## cpp
-## dhry
-## hello_world
-## interactive
-## test_cases
+### cpp
+
+Tests that C++ code can be successfully compiled for ETISS.
+
+### dhry
+
+The Dhrystone benchmark program.
+
+### hello_world
+
+A Simple program that prints "`Hello world!`".
+
+### interactive
+
+Test the functionality of `stdin` by echoing all input.
+
+### test_cases
+
+A variety of different tests:
+
+- AES encryption
+- Edge detection algorithm
+- Endianness test.
+- FIR Filter with Redundant Load Elimination
+- Test of heap allocation?
+- IIR Filter
+- Insertion Sort
+- JPEG Discrete Cosine Transform
+- Pi calculation
+- Simple tests for divide, multiply, shift, and floating point instructions

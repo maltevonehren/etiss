@@ -5,7 +5,7 @@ See its [README](target_code/README.md) for details on the individual examples
 and see the [explanation below](#build-examples-during-regular-build-process) on how to build them during the regular build process.
 
 Since the code is running without an operating system custom startup code and linker scripts are required for each architecture.
-The custom startup code is located in the `<arch>` folder.
+The custom startup code is located in the `<arch>` folders.
 In addition to the startup code there is also a CMake file with a macro to build the code using the custom startup code and linker script.
 
 ## Build Examples during regular Build
@@ -15,6 +15,7 @@ The same projects can build multiple times with different configurations, result
 The examples  are then installed into the `<etiss_install_dir>/examples/SW/<subarch>/bin` directory.
 
 - Setting the CMake cache variable `EXAMPLES_BUILD_RISCV` to `ON` will build the software for `rv32gc` and `rv64gc`
+- Setting the CMake cache variable `EXAMPLES_BUILD_OR1K` to `ON` will build the software for `or1k`
  
 (The corresponding toolchain has to be installed. See [Specifying compiler location](#specifying-compiler-location))
 
@@ -53,10 +54,11 @@ It can be customized using CMake cache variables.
 - In case the toolchain is not on the path its location get be specified with `<ARCH>_TOOLCHAIN_PREFIX`
 
 The main CMake project will pass these variables on to the external projects.
-See [this section of the main README](../../README.md#example-target-software) for an example.
+See [this section of the main README](/README.md#example-target-software) for an example.
 
 The defaults are:
 - `RISCV_TOOLCHAIN_BASENAME` = `riscv64-unknown-elf`
+- `OR1K_TOOLCHAIN_BASENAME` = `or1k-elf`
 
 ## Changing code in `examples/SW/target_code`
 
