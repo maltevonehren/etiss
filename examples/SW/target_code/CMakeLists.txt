@@ -6,10 +6,16 @@ include(${ETISS_CMAKE})
 
 add_subdirectory(hello_world)
 add_subdirectory(test_cases)
-add_subdirectory(interactive)
+
+if (HAS_SEMIHOSTING)
+    add_subdirectory(interactive)
+endif()
+
+if (HAS_SEMIHOSTING AND HAS_TIME)
+    add_subdirectory(cpp)
+endif()
 
 if(HAS_TIME)
-    add_subdirectory(cpp)
     add_subdirectory(dhry)
 endif()
 

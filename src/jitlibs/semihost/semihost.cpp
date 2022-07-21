@@ -1,8 +1,12 @@
+#include <cstdio>
 #include "etiss/ETISS.h"
 
 #include "SemihostingCalls.h"
 
-#include <cstdio>
+extern "C"
+{
+#include "libsemihost.h"
+}
 
 // constant for SYS_ELAPSED and SYS_TICKFREQ
 #define TICKER_FREQ 1000 // Hz
@@ -23,8 +27,14 @@ const char *SYS_OPEN_MODES_STRS[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "
         return -1;                 \
     }
 
+// For many semihosting calls parameter points to a data block, so this type of call is very common
 #define FIELD(fieldNo) semihostReadStructField(etissSystem, XLEN / 8, parameter, fieldNo);
 
+// forward declaration for use in extern block:
+
+/// Executes the semihosting call based on the operation number.
+/// For description of all semihosting calls see:
+/// https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter);
 
@@ -42,6 +52,9 @@ extern "C"
     }
 }
 
+/// Assumes there is an array of numBytes long integers at address.
+/// Reads the filedNo-th field of this array an returns it as a uint64
+/// (0-indexed)
 etiss_uint64 semihostReadStructField(ETISS_System *etissSystem, etiss_uint32 numBytes, etiss_uint64 address,
                                      int fieldNo)
 {
@@ -74,6 +87,7 @@ etiss_uint64 semihostReadStructField(ETISS_System *etissSystem, etiss_uint32 num
     return 0;
 }
 
+/// helper for reading a std::vector of bytes by address and length from an etiss system
 std::vector<etiss_uint8> semihostReadSystemMemory(ETISS_System *etissSystem, etiss_uint64 address, etiss_uint64 length)
 {
     std::vector<etiss_uint8> buffer;
@@ -82,11 +96,13 @@ std::vector<etiss_uint8> semihostReadSystemMemory(ETISS_System *etissSystem, eti
     return buffer;
 }
 
+/// helper for writing a std::vector of bytes to an etiss system
 void semihostWriteSystemMemory(ETISS_System *etissSystem, etiss_uint64 address, std::vector<etiss_uint8> data)
 {
     etissSystem->dbg_write(etissSystem->handle, address, data.data(), data.size());
 }
 
+/// helper for reading a std::string by address and length from an etiss system
 std::string semihostReadString(ETISS_System *etissSystem, etiss_uint64 address, etiss_uint64 length)
 {
     std::vector<etiss_uint8> buffer = semihostReadSystemMemory(etissSystem, address, length);
@@ -94,6 +110,7 @@ std::string semihostReadString(ETISS_System *etissSystem, etiss_uint64 address, 
     return str;
 }
 
+/// helper for writing a std::string to an etiss system
 void semihostWriteString(ETISS_System *etissSystem, etiss_uint64 address, std::string str)
 {
     etissSystem->dbg_write(etissSystem->handle, address, (etiss_uint8 *)str.c_str(), str.length() + 1);
@@ -104,9 +121,6 @@ bool is_std_in_out_err(FILE *file)
     return file == stdin || file == stdout || file == stderr;
 }
 
-/// Executes the semihosting call based on the operation number.
-/// For description of all semihosting calls see:
-/// https://github.com/ARM-software/abi-aa/blob/main/semihosting/semihosting.rst
 etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSystem, etiss_uint32 XLEN,
                             etiss_uint64 operationNumber, etiss_uint64 parameter)
 {
