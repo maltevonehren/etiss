@@ -135,9 +135,9 @@ void test_div()
     m1 = 201371418;
     m2 = 56454;
 
-    if (m1 / 56454 != 3567) {
+    if (m1 / m2 != 3567) {
         printf("div2 failed: ");
-        printf("%016x\n", m1 / 56454);
+        printf("%016x\n", m1 / m2);
 
     } else {
         printf("div2 success!\n");
