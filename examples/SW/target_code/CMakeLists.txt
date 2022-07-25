@@ -9,6 +9,7 @@ add_subdirectory(test_cases)
 
 if (HAS_SEMIHOSTING)
     add_subdirectory(interactive)
+    add_subdirectory(semihosting_cpp)
 endif()
 
 if (HAS_SEMIHOSTING AND HAS_TIME)

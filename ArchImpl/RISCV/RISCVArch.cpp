@@ -1,4 +1,5 @@
 // This file was generated on Mon Aug 03 15:02:38 CEST 2020
+// modified for semihosting Mon, 25 Jul 2022 12:49:45 +0200.
 // If necessary please modify this file according to the instructions
 // Contact: eda@tum
 
@@ -7106,10 +7107,9 @@ static InstructionDefinition ebreak_(
         partInit.code() += "etiss_uint32 mem_val_2;\n";
         partInit.code() += "exception |= (*(system->dread))(system->handle, cpu, " + std::to_string(ic.current_address_ + 4U) + ", (etiss_uint8*)&mem_val_2, 4);\n";
         partInit.code() += "if ((etiss_uint32)(mem_val_0) == 32509971U && (etiss_uint32)(mem_val_1) == 1048691U && (etiss_uint32)(mem_val_2) == 1081102355U) {\n";
-        partInit.code() += "etiss_uint32 operation = *((RISCV*)cpu)->X[" + std::to_string(10U) + "];\n";
-        partInit.code() += "etiss_uint32 parameter = *((RISCV*)cpu)->X[" + std::to_string(11U) + "];\n";
-        partInit.code() += "*((RISCV*)cpu)->X[" + std::to_string(10U) +
-                           "] = etiss_semihost(cpu, system, plugin_pointers, " + std::to_string(32) +
+        partInit.code() += "etiss_uint32 operation = *((RISCV*)cpu)->X[10U];\n";
+        partInit.code() += "etiss_uint32 parameter = *((RISCV*)cpu)->X[11U];\n";
+        partInit.code() += "*((RISCV*)cpu)->X[10U] = etiss_semihost(cpu, system, plugin_pointers, " + std::to_string(32) +
                            ", operation, parameter);\n";
         partInit.code() += "}\n";
         partInit.code() += " else {\n";
