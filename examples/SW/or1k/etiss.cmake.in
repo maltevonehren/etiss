@@ -1,0 +1,18 @@
+set(LIB_ETISS @CMAKE_INSTALL_PREFIX@/lib/lib@LIB_NAME@.a)
+
+# this macro adds custom linker arguments to compile an executable for etiss
+MACRO(add_executable_etiss target)
+    set(src_files "${ARGN}")
+    
+    add_executable(${target} ${src_files})
+    
+    # this will cause a relinking if any of the listed files change
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS 
+        "${LIB_ETISS}"
+    )
+    target_link_options(${target} BEFORE PRIVATE
+        -mboard=@OR1K_BOARD@
+        -L@CMAKE_INSTALL_PREFIX@/lib
+        -l@LIB_NAME@
+    )
+ENDMACRO()

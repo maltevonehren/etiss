@@ -1,0 +1,12 @@
+; automatically build memory configuation file
+
+[IntConfigurations]
+
+simple_mem_system.memseg_origin_00 = @MEM_ORIGIN@
+simple_mem_system.memseg_length_00 = @MEM_LENGTH@
+
+[Plugin Logger]
+
+plugin.logger.logaddr=@LOGGER_ADDR@
+plugin.logger.logmask=@LOGGER_MASK@
+
