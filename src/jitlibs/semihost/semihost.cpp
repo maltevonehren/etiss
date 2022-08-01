@@ -23,7 +23,7 @@ const char *SYS_OPEN_MODES_STRS[] = { "r", "rb", "r+", "r+b", "w", "wb", "w+", "
 #define CHECK_NEGATIVE_RETURN(var) \
     if ((var) < 0)                 \
     {                              \
-        semihosting_errno = errno; \
+        semihostingErrno = errno;  \
         return -1;                 \
     }
 
@@ -134,7 +134,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     static etiss_uint64 nextFd = 0;
     /// Local errno variable to set in semihosting functions
     /// and return using SYS_ERRNO
-    static etiss_int64 semihosting_errno;
+    static etiss_int64 semihostingErrno;
 
     switch (operationNumber)
     {
@@ -154,7 +154,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             ss << "Semihosting: invalid file descriptor " << fd << " for semihosting call 0x" << std::hex
                << std::setfill('0') << std::setw(2) << operationNumber;
             etiss::log(etiss::INFO, ss.str());
-            semihosting_errno = EBADF;
+            semihostingErrno = EBADF;
             return -1;
         }
         auto file = openFiles[fd];
@@ -273,7 +273,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
         if (mode >= SYS_OPEN_MODES_TOTAL)
         {
             // invalid mode
-            semihosting_errno = EINVAL;
+            semihostingErrno = EINVAL;
             return -1;
         }
 
@@ -294,7 +294,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
             file = fopen(path_str.c_str(), SYS_OPEN_MODES_STRS[mode]);
             if (file == nullptr)
             {
-                semihosting_errno = errno;
+                semihostingErrno = errno;
                 return -1;
             }
         }
@@ -363,7 +363,7 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
 
         if (remove(path_str.c_str()) < 0)
         {
-            semihosting_errno = errno;
+            semihostingErrno = errno;
             return -1;
         }
         return 0;
@@ -398,16 +398,16 @@ etiss_int64 semihostingCall(ETISS_CPU *const cpu, ETISS_System *const etissSyste
     case SYS_ERRNO:
     {
         std::stringstream ss;
-        ss << "Semihosting: SYS_ERRNO (" << semihosting_errno << ")";
+        ss << "Semihosting: SYS_ERRNO (" << semihostingErrno << ")";
         etiss::log(etiss::VERBOSE, ss.str());
-        return semihosting_errno;
+        return semihostingErrno;
     }
     case SYS_EXIT:
     {
         etiss::log(etiss::VERBOSE, "Semihosting: SYS_EXIT -> exit simulator");
 
         cpu->exception = ETISS_RETURNCODE_CPUFINISHED;
-        cpu->return_pending = true;
+        cpu->return_pending = 1;
     }
     case SYS_ELAPSED:
     {
