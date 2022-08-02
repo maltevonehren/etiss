@@ -125,8 +125,9 @@ jobs:
         bin/run_helper.sh  examples/SW/rv32gc/bin/example_cpp  config examples/SW/rv32gc/etc/memsegs.ini  gcc
         fi
         # run tests on 64-bit RISC-V as well
-        bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini
-        bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini
+        # temporarily disabled, until new RISC-V 64-bit Arch is added
+        # bin/run_helper.sh  examples/SW/rv64gc/bin/test_cases   config examples/SW/rv64gc/etc/memsegs.ini
+        # bin/run_helper.sh  examples/SW/rv64gc/bin/example_cpp  config examples/SW/rv64gc/etc/memsegs.ini
   benchmark:
     strategy:
       matrix:
